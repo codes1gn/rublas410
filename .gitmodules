@@ -1,0 +1,6 @@
+[submodule "ndarray"]
+	path = ndarray
+	url = git@github.com:codes1gn/ndarray.git
+[submodule "ndarray-linalg"]
+	path = ndarray-linalg
+	url = git@github.com:codes1gn/ndarray-linalg.git
