@@ -2,6 +2,7 @@
 name = "rublas"
 version = "0.1.0"
 edition = "2021"
+# resolver = "2"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -11,18 +12,16 @@ edition = "2021"
 
 [dependencies]
 ndarray = { version = "0.14", path = "../ndarray", features = ["blas"] }
+ndarray-linalg = { package = "ndarray-linalg", version = "0.13", optional = true, path = "../ndarray-linalg/ndarray-linalg", features = ["netlib-system"] }
 
 # use netlib
-# blas-src = { version = "0.6.1", default-features = false, features = ["netlib"] }
+blas-src-netlib = { package = "blas-src", version = "0.6.1", default-features = false, optional = true, features = ["netlib"] }
 
 # use openblas
-blas-src = { version = "0.6.1", features = ["openblas"] }
-openblas-src = { version = "0.9.0", features = ["cblas", "system"] }
-# blas-src = { version = "0.8", features = ["openblas"] }
-# openblas-src = { version = "0.10", features = ["cblas", "system"] }
-# blas-src = { version = "0.7", features = ["openblas"] }
-# openblas-src = { version = "0.9", features = ["cblas", "system"] }
+blas-src-openblas = { package = "blas-src", version = "0.6.1", optional = true, features = ["openblas"] }
+openblas-src = { version = "0.9.0", optional = true, features = ["cblas", "system"] }
 
-# linalg submodule
-# ndarray-linalg = { version = "0.13", path = "../ndarray-linalg/ndarray-linalg", features = ["openblas-system"] }
-ndarray-linalg = { version = "0.13", path = "../ndarray-linalg/ndarray-linalg", features = ["netlib-system"] }
+[features]
+default = []
+openblas = ["blas-src-openblas", "openblas-src"]
+netlib = ["blas-src-netlib"]
