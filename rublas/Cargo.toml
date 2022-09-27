@@ -15,11 +15,10 @@ description = "wrapper project for integrating ndarray + blas libs into Chopper 
 # the version pick for ndarray/blas-src/openblas-src/ndarray-linalg is tricky
 # since blas-src constraints the version of ndarray and backend vendors
 # currently pick a workable one but may bump up to later version if available
-[lib]
-name = "rublas"
 
 [dependencies]
-ndarray = { version = "0.14", path = "../ndarray", features = ["blas"] }
+ndarray-vanilla = { package = "ndarray", version = "0.15", optional = true }
+ndarray-blas = { package = "ndarray", version = "0.14", path = "../ndarray", optional = true, features = ["blas"] }
 ndarray-linalg = { package = "ndarray-linalg", version = "0.13", optional = true, path = "../ndarray-linalg/ndarray-linalg", features = ["netlib-system"] }
 
 # use netlib
@@ -33,9 +32,9 @@ openblas-src = { version = "0.9.0", optional = true, features = ["cblas", "syste
 criterion = "0.3"
 
 [features]
-default = []
-openblas = ["blas-src-openblas", "openblas-src"]
-netlib = ["blas-src-netlib"]
+default = ["ndarray-vanilla"]
+openblas = ["ndarray-blas", "blas-src-openblas", "openblas-src"]
+netlib = ["ndarray-blas", "blas-src-netlib"]
 test = ["openblas"]
 
 [[bench]]

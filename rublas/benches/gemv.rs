@@ -13,7 +13,7 @@ fn gemv_64_64c(crit: &mut Criterion) {
         let x = Array1::<f32>::zeros(n);
         let mut y = Array1::<f32>::zeros(m);
         bench.iter(|| {
-            general_mat_vec_mul(1.0, &a, &x, 1.0, &mut y);
+            black_box(general_mat_vec_mul(1.0, &a, &x, 1.0, &mut y));
         });
     
     });

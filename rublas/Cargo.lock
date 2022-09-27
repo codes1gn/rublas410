@@ -74,7 +74,7 @@ version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3c06b9e1a9ea243aa7be8cf51e025562334a52674508cc02d8b54a99d4986a13"
 dependencies = [
- "num-complex",
+ "num-complex 0.3.1",
  "num-traits",
  "rand",
  "serde",
@@ -294,7 +294,7 @@ checksum = "041b3cb380f92a53e317ea046d0e715d2302dae6d2f426bdf3ccf27a36ef40e9"
 dependencies = [
  "lapack-sys",
  "libc",
- "num-complex",
+ "num-complex 0.3.1",
 ]
 
 [[package]]
@@ -348,6 +348,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "matrixmultiply"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "add85d4dd35074e6fedc608f8c8f513a3548619a9024b751949ef0e8e45a4d84"
+dependencies = [
+ "rawpointer",
+]
+
+[[package]]
 name = "memchr"
 version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -368,8 +377,8 @@ version = "0.14.0"
 dependencies = [
  "blas-src",
  "cblas-sys",
- "matrixmultiply",
- "num-complex",
+ "matrixmultiply 0.2.4",
+ "num-complex 0.3.1",
  "num-integer",
  "num-traits",
  "rawpointer",
@@ -384,8 +393,21 @@ dependencies = [
  "approx",
  "blas-src",
  "cblas-sys",
- "matrixmultiply",
- "num-complex",
+ "matrixmultiply 0.2.4",
+ "num-complex 0.3.1",
+ "num-integer",
+ "num-traits",
+ "rawpointer",
+]
+
+[[package]]
+name = "ndarray"
+version = "0.15.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "adb12d4e967ec485a5f71c6311fe28158e9d6f4bc4a447b474184d0f91a8fa32"
+dependencies = [
+ "matrixmultiply 0.3.2",
+ "num-complex 0.4.2",
  "num-integer",
  "num-traits",
  "rawpointer",
@@ -398,7 +420,7 @@ dependencies = [
  "cauchy",
  "lax",
  "ndarray 0.14.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "num-complex",
+ "num-complex 0.3.1",
  "num-traits",
  "rand",
  "thiserror",
@@ -422,6 +444,15 @@ dependencies = [
  "num-traits",
  "rand",
  "serde",
+]
+
+[[package]]
+name = "num-complex"
+version = "0.4.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7ae39348c8bc5fbd7f40c727a9925f03517afd2ab27d46702108b6a7e5414c19"
+dependencies = [
+ "num-traits",
 ]
 
 [[package]]
@@ -622,6 +653,7 @@ dependencies = [
  "blas-src",
  "criterion",
  "ndarray 0.14.0",
+ "ndarray 0.15.6",
  "ndarray-linalg",
  "openblas-src",
 ]
