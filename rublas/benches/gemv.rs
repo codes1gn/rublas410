@@ -1,8 +1,20 @@
-use criterion::*;
+#[cfg(feature = "openblas")]
+extern crate ndarray_blas as ndarray;
+
+#[cfg(all(
+    feature = "default",
+    not(feature = "openblas"),
+    not(feature = "netlib")
+))]
+extern crate ndarray_vanilla as ndarray;
+
 use ndarray::linalg::general_mat_vec_mul;
 use ndarray::prelude::*;
 use ndarray::Array;
 use ndarray::*;
+
+use criterion::*;
+use rublas::prelude::*;
 
 fn gemv_64_64c(crit: &mut Criterion) {
     let mut bench_group = crit.benchmark_group("gemm_test");
