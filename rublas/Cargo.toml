@@ -35,7 +35,6 @@ criterion = "0.3"
 default = ["ndarray-vanilla"]
 openblas = ["ndarray-blas", "blas-src-openblas", "openblas-src"]
 netlib = ["ndarray-blas", "blas-src-netlib"]
-test = ["openblas"]
 
 [[bench]]
 name = "gemv"

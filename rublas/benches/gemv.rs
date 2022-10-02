@@ -1,6 +1,9 @@
 #[cfg(feature = "openblas")]
 extern crate ndarray_blas as ndarray;
 
+#[cfg(feature = "netlib")]
+extern crate ndarray_blas as ndarray;
+
 #[cfg(all(
     feature = "default",
     not(feature = "openblas"),
