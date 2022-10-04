@@ -23,13 +23,15 @@ extern crate ndarray_blas as ndarray;
 /// let result = 2 + 2;
 /// assert_eq!(result, 4);
 /// ```
+pub mod tensor;
+
 pub mod prelude {
     pub use ndarray::prelude::{arr2, Array1, Array2};
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::prelude::*;
+    use ndarray::prelude::{arr2, Array1, Array2};
 
     #[test]
     fn it_works() {

@@ -20,6 +20,7 @@ description = "wrapper project for integrating ndarray + blas libs into Chopper 
 ndarray-vanilla = { package = "ndarray", version = "0.15", optional = true }
 ndarray-blas = { package = "ndarray", version = "0.14", path = "../ndarray", optional = true, features = ["blas"] }
 ndarray-linalg = { package = "ndarray-linalg", version = "0.13", optional = true, path = "../ndarray-linalg/ndarray-linalg", features = ["netlib-system"] }
+ndarray-rand = { package = "ndarray-rand", version = "0.11", path = "../ndarray/ndarray-rand" }
 
 # use netlib
 blas-src-netlib = { package = "blas-src", version = "0.6.1", default-features = false, optional = true, features = ["netlib"] }
@@ -29,7 +30,7 @@ blas-src-openblas = { package = "blas-src", version = "0.6.1", optional = true, 
 openblas-src = { version = "0.9.0", optional = true, features = ["cblas", "system"] }
 
 [dev-dependencies]
-criterion = "0.3"
+criterion = { version = "0.3", features = ["html_reports"] }
 
 [features]
 default = ["ndarray-vanilla"]
@@ -38,5 +39,9 @@ netlib = ["ndarray-blas", "blas-src-netlib"]
 
 [[bench]]
 name = "gemv"
+harness = false
+
+[[bench]]
+name = "rng"
 harness = false
 

@@ -19,22 +19,23 @@ use ndarray::*;
 use criterion::*;
 use rublas::prelude::*;
 
-fn gemv_64_64c(crit: &mut Criterion) {
-    let mut bench_group = crit.benchmark_group("gemm_test");
-    let mat_size = 64;
-    bench_group.bench_with_input(
-        BenchmarkId::new("gemv_64_64c/1", mat_size),
-        &mat_size,
-        |bench, msize| {
-            let a = Array2::<f32>::zeros((*msize, *msize));
-            let (m, n) = a.dim();
-            let x = Array1::<f32>::zeros(n);
-            let mut y = Array1::<f32>::zeros(m);
-            bench.iter(|| {
-                black_box(general_mat_vec_mul(1.0, &a, &x, 1.0, &mut y));
-            });
-        },
-    );
+fn small_gemv(crit: &mut Criterion) {
+    let mut bench_group = crit.benchmark_group("small_gemv");
+    for mat_size in vec![32, 64, 128, 512, 1024, 2048, 4096, 8192].iter() {
+        bench_group.bench_with_input(
+            BenchmarkId::new(format!("gemv_{}_{}_f32", mat_size, mat_size), mat_size),
+            mat_size,
+            |bench, msize| {
+                let a = Array2::<f32>::zeros((*msize, *msize));
+                let (m, n) = a.dim();
+                let x = Array1::<f32>::zeros(n);
+                let mut y = Array1::<f32>::zeros(m);
+                bench.iter(|| {
+                    black_box(general_mat_vec_mul(1.0, &a, &x, 1.0, &mut y));
+                });
+            },
+        );
+    }
 }
 // fn eig_small(c: &mut Criterion) {
 //     let mut group = c.benchmark_group("eig");
@@ -66,8 +67,8 @@ fn gemv_64_64c(crit: &mut Criterion) {
 //     }
 // }
 
-criterion_group!(gemm_test, gemv_64_64c);
-criterion_main!(gemm_test);
+criterion_group!(gemv_tests, small_gemv);
+criterion_main!(gemv_tests);
 
 // #[bench]
 // fn gemv_64_64f(bench: &mut Bencher) {

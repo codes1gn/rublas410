@@ -1,0 +1,54 @@
+#[cfg(feature = "openblas")]
+extern crate ndarray_blas as ndarray;
+
+#[cfg(feature = "netlib")]
+extern crate ndarray_blas as ndarray;
+
+#[cfg(all(
+    feature = "default",
+    not(feature = "openblas"),
+    not(feature = "netlib")
+))]
+extern crate ndarray_vanilla as ndarray;
+
+use ndarray::linalg::general_mat_vec_mul;
+use ndarray::prelude::*;
+use ndarray::Array;
+use ndarray::*;
+use ndarray_rand::rand_distr::Normal;
+use ndarray_rand::rand_distr::Uniform;
+use ndarray_rand::RandomExt;
+use ndarray_rand::F32;
+
+use criterion::*;
+use rublas::prelude::*;
+
+fn rng_uniform(crit: &mut Criterion) {
+    let mut bench_group = crit.benchmark_group("rng_uniform");
+    let mat_size = 64;
+    bench_group.bench_with_input(
+        BenchmarkId::new(format!("rng_uni_{}_{}_f32", mat_size, mat_size), mat_size),
+        &mat_size,
+        |bench, msize| {
+            bench.iter(|| {
+                black_box(Array::random((*msize, *msize), Uniform::new(-1f32, 1.)));
+            });
+        },
+    );
+}
+
+// TODO other rng patterns
+criterion_group!(rng_tests, rng_uniform);
+criterion_main!(rng_tests);
+
+//  #[bench]
+//  fn norm_f32(b: &mut Bencher) {
+//      let m = 100;
+//      b.iter(|| Array::random((m, m), F32(Normal::new(0., 1.).unwrap())));
+//  }
+//
+//  #[bench]
+//  fn norm_f64(b: &mut Bencher) {
+//      let m = 100;
+//      b.iter(|| Array::random((m, m), Normal::new(0., 1.).unwrap()));
+//  }
