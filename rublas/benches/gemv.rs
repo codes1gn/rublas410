@@ -20,52 +20,38 @@ use criterion::*;
 use rublas::prelude::*;
 
 fn small_gemv(crit: &mut Criterion) {
-    let mut bench_group = crit.benchmark_group("small_gemv");
-    for mat_size in vec![32, 64, 128, 512, 1024, 2048, 4096, 8192].iter() {
-        bench_group.bench_with_input(
-            BenchmarkId::new(format!("gemv_{}_{}_f32", mat_size, mat_size), mat_size),
-            mat_size,
-            |bench, msize| {
-                let a = Array2::<f32>::zeros((*msize, *msize));
-                let (m, n) = a.dim();
-                let x = Array1::<f32>::zeros(n);
-                let mut y = Array1::<f32>::zeros(m);
-                bench.iter(|| {
-                    black_box(general_mat_vec_mul(1.0, &a, &x, 1.0, &mut y));
-                });
-            },
-        );
+    let mut bench_group = crit.benchmark_group("gemv");
+    for Msize in vec![16, 64, 256, 1024, 4096].iter() {
+        for Ksize in vec![16, 64, 256, 1024, 4096].iter() {
+            bench_group.bench_with_input(
+                BenchmarkId::new(format!("M{}_K{}_f32", Msize, Ksize), 0),
+                Msize,
+                |bench, msize| {
+                    let a = Array2::<f32>::zeros((*Msize, *Ksize));
+                    let (m, n) = a.dim();
+                    let x = Array1::<f32>::zeros(n);
+                    let mut y = Array1::<f32>::zeros(m);
+                    bench.iter(|| {
+                        black_box(general_mat_vec_mul(1.0, &a, &x, 1.0, &mut y));
+                    });
+                },
+            );
+            bench_group.bench_with_input(
+                BenchmarkId::new(format!("M{}_K{}_f64", Msize, Ksize), 0),
+                Msize,
+                |bench, msize| {
+                    let a = Array2::<f64>::zeros((*Msize, *Ksize));
+                    let (m, n) = a.dim();
+                    let x = Array1::<f64>::zeros(n);
+                    let mut y = Array1::<f64>::zeros(m);
+                    bench.iter(|| {
+                        black_box(general_mat_vec_mul(1.0, &a, &x, 1.0, &mut y));
+                    });
+                },
+            );
+        }
     }
 }
-// fn eig_small(c: &mut Criterion) {
-//     let mut group = c.benchmark_group("eig");
-//     for &n in &[4, 8, 16, 32, 64, 128] {
-//         group.bench_with_input(BenchmarkId::new("vecs/C", n), &n, |b, n| {
-//             let a: Array2<f64> = random((*n, *n));
-//             b.iter(|| {
-//                 let (_e, _vecs) = a.eig().unwrap();
-//             })
-//         });
-//         group.bench_with_input(BenchmarkId::new("vecs/F", n), &n, |b, n| {
-//             let a: Array2<f64> = random((*n, *n).f());
-//             b.iter(|| {
-//                 let (_e, _vecs) = a.eig().unwrap();
-//             })
-//         });
-//         group.bench_with_input(BenchmarkId::new("vals/C", n), &n, |b, n| {
-//             let a: Array2<f64> = random((*n, *n));
-//             b.iter(|| {
-//                 let _result = a.eigvals().unwrap();
-//             })
-//         });
-//         group.bench_with_input(BenchmarkId::new("vals/F", n), &n, |b, n| {
-//             let a: Array2<f64> = random((*n, *n).f());
-//             b.iter(|| {
-//                 let _result = a.eigvals().unwrap();
-//             })
-//         });
-//     }
-// }
 
 criterion_group!(gemv_tests, small_gemv);
 criterion_main!(gemv_tests);

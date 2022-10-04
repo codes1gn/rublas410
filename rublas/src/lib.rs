@@ -11,6 +11,8 @@ extern crate ndarray_blas as ndarray;
 #[cfg(feature = "netlib")]
 extern crate ndarray_blas as ndarray;
 
+pub mod tensor;
+
 /// Prelude module for users to import
 ///
 /// ```
@@ -23,11 +25,11 @@ extern crate ndarray_blas as ndarray;
 /// let result = 2 + 2;
 /// assert_eq!(result, 4);
 /// ```
-pub mod tensor;
-
 pub mod prelude {
     pub use ndarray::prelude::{arr2, Array1, Array2};
 }
+
+// TODO use custom measurements: TFLOPS for criterion
 
 #[cfg(test)]
 mod tests {
@@ -36,11 +38,8 @@ mod tests {
     #[test]
     fn it_works() {
         let a = arr2(&[[1, 2, 3], [4, 5, 6]]);
-
         let b = arr2(&[[6, 3], [5, 2], [4, 1]]);
-
         println!("{}", a.dot(&b));
-
         let result = 2 + 2;
         assert_eq!(result, 4);
     }
