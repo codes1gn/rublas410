@@ -2,7 +2,6 @@ use crate::blas_tensor::{BlasTensor, TensorKind};
 use ndarray::linalg::general_mat_mul;
 use ndarray::linalg::general_mat_vec_mul;
 
-
 pub struct BlasExecutor {}
 
 impl BlasExecutor {
@@ -21,7 +20,6 @@ impl BlasExecutor {
     pub fn gemm_nn(&self, lhs: &BlasTensor, rhs: &BlasTensor, out: &mut BlasTensor) -> () {
         *out = BlasTensor::zeros(vec![lhs.shape[0], rhs.shape[1]]);
     }
-
 }
 
 #[cfg(test)]
@@ -50,5 +48,4 @@ mod tests {
         assert_eq!(c.ndims(), 2);
         assert_eq!(c.shape(), [17, 18]);
     }
-
 }

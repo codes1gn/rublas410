@@ -11,13 +11,13 @@ extern crate ndarray_blas as ndarray;
 #[cfg(feature = "netlib")]
 extern crate ndarray_blas as ndarray;
 
-pub mod blas_tensor;
 pub mod blas_executor;
+pub mod blas_tensor;
 
 /// Prelude module for users to import
 pub mod prelude {
-    pub use crate::blas_tensor::BlasTensor;
     pub use crate::blas_executor::BlasExecutor;
+    pub use crate::blas_tensor::BlasTensor;
 }
 
 // TODO use custom measurements: TFLOPS for criterion

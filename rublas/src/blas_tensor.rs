@@ -79,7 +79,6 @@ impl BlasTensor {
             data: TensorKind::from(Array::from(raw_data)),
             shape: raw_shape,
         }
-        
     }
 
     // TODO patch match on shape len
@@ -103,6 +102,36 @@ impl BlasTensor {
         } else if dims == 4 {
             return Self {
                 data: TensorKind::from(Array2::<f32>::zeros([
+                    shape[0] * shape[1] * shape[2],
+                    shape[3],
+                ])),
+                shape: shape,
+            };
+        } else {
+            panic!("not support float tensor with 5 dims or more");
+        }
+    }
+
+    pub fn ones(shape: Vec<usize>) -> BlasTensor {
+        let dims = shape.len();
+        if dims == 1 {
+            return Self {
+                data: TensorKind::from(Array1::<f32>::ones([shape[0]])),
+                shape: shape,
+            };
+        } else if dims == 2 {
+            return Self {
+                data: TensorKind::from(Array2::<f32>::ones([shape[0], shape[1]])),
+                shape: shape,
+            };
+        } else if dims == 3 {
+            return Self {
+                data: TensorKind::from(Array2::<f32>::ones([shape[0] * shape[1], shape[2]])),
+                shape: shape,
+            };
+        } else if dims == 4 {
+            return Self {
+                data: TensorKind::from(Array2::<f32>::ones([
                     shape[0] * shape[1] * shape[2],
                     shape[3],
                 ])),
@@ -223,6 +252,13 @@ mod tests {
     }
 
     #[test]
+    fn test_ones_2d() {
+        let blast = BlasTensor::ones(vec![64, 32]);
+        let reft = TensorKind::FloatMatrix(Array::<f32, _>::ones((64, 32)));
+        assert_eq!(blast.data, reft);
+    }
+
+    #[test]
     fn test_zeros_3d() {
         let blast = BlasTensor::zeros(vec![8, 64, 32]);
         let reft = TensorKind::FloatMatrix(Array::<f32, _>::zeros((512, 32)));
@@ -233,6 +269,13 @@ mod tests {
     fn test_zeros_4d() {
         let blast = BlasTensor::zeros(vec![8, 2, 64, 32]);
         let reft = TensorKind::FloatMatrix(Array::<f32, _>::zeros((1024, 32)));
+        assert_eq!(blast.data, reft);
+    }
+
+    #[test]
+    fn test_ones_4d() {
+        let blast = BlasTensor::ones(vec![8, 2, 64, 32]);
+        let reft = TensorKind::FloatMatrix(Array::<f32, _>::ones((1024, 32)));
         assert_eq!(blast.data, reft);
     }
 
@@ -276,8 +319,9 @@ mod tests {
     #[test]
     fn test_build_from_1d() {
         let blast = BlasTensor::from(vec![1.7, 2.3, 3.3, 4.1]);
-        // let reft = TensorKind::FloatVector(Array::from(vec![1.7, 2.3, 3.3, 4.1]));
+        let reft = TensorKind::FloatVector(Array::from(vec![1.7, 2.3, 3.3, 4.1]));
         assert_eq!(blast.shape(), vec![4]);
+        assert_eq!(blast.data, reft);
     }
 
     // #[test]
