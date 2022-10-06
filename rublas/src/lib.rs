@@ -49,7 +49,7 @@ mod tests {
         let a = Array2::<f32>::zeros((64, 32));
         let (m, n) = a.dim();
         let x = Array1::<f32>::zeros(n);
-        let mut y = Array1::<f32>::zeros(m);
+        let y = Array1::<f32>::zeros(m);
         assert_eq!(y.shape(), &[m]);
         assert_eq!(x.shape(), &[n]);
         assert_eq!(a.shape(), &[m, n]);

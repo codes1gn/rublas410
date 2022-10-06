@@ -684,6 +684,7 @@ dependencies = [
  "ndarray 0.15.6",
  "ndarray-linalg",
  "ndarray-rand",
+ "num-traits",
  "openblas-src",
 ]
 

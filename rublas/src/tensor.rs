@@ -1,5 +1,262 @@
-use ndarray::prelude::{Array, Array1, Array2, Array3, Array4};
+use ndarray::prelude::*;
+use ndarray_rand::rand_distr::uniform::SampleUniform;
+use ndarray_rand::rand_distr::Distribution;
+use ndarray_rand::rand_distr::Normal;
+use ndarray_rand::rand_distr::Uniform;
+use num_traits::Zero;
+use std::fmt::Debug;
 
-pub struct tensor {
-    data: Array3<f32>,
+use ndarray::prelude::*;
+use ndarray::Array;
+use ndarray::*;
+pub use ndarray_rand::RandomExt;
+use ndarray_rand::F32;
+
+#[derive(Debug, PartialEq)]
+pub enum TensorKind {
+    FloatVector(Array1<f32>),
+    FloatMatrix(Array2<f32>),
+    DoubleVector(Array1<f64>),
+    DoubleMatrix(Array2<f64>),
+}
+
+impl From<Array1<f32>> for TensorKind {
+    fn from(who: Array1<f32>) -> Self {
+        TensorKind::FloatVector(who)
+    }
+}
+
+impl From<Array2<f32>> for TensorKind {
+    fn from(who: Array2<f32>) -> Self {
+        TensorKind::FloatMatrix(who)
+    }
+}
+
+impl From<Array1<f64>> for TensorKind {
+    fn from(who: Array1<f64>) -> Self {
+        TensorKind::DoubleVector(who)
+    }
+}
+
+impl From<Array2<f64>> for TensorKind {
+    fn from(who: Array2<f64>) -> Self {
+        TensorKind::DoubleMatrix(who)
+    }
+}
+
+// Purpose of this wrapper layer:
+// 1. simplify usage, hide generics configuration
+// 2. directly support high-order tensor but use <2D arrays for performance
+// 3. hide implementation of strides/paddings in this layer and make this controllable
+// 4. expose fixed pattern to CRT, act like ISA style
+//
+//
+// TODO only use Array1, Array2 as the data field
+// to fit blas config
+// TODO maybe need a dedicated Shape/Dimension struct
+// TODO only support D1, D2, D3, D4 now
+// TODO only allow channel_last data layout that contineous along
+// last dims
+#[derive(Debug, PartialEq)]
+pub struct Tensor {
+    pub data: TensorKind,
+    pub shape: Vec<usize>,
+}
+
+impl Tensor {
+    // TODO patch match on shape len
+    pub fn zeros(shape: Vec<usize>) -> Tensor {
+        let dims = shape.len();
+        if dims == 1 {
+            return Self {
+                data: TensorKind::from(Array1::<f32>::zeros([shape[0]])),
+                shape: shape,
+            };
+        } else if dims == 2 {
+            return Self {
+                data: TensorKind::from(Array2::<f32>::zeros([shape[0], shape[1]])),
+                shape: shape,
+            };
+        } else if dims == 3 {
+            return Self {
+                data: TensorKind::from(Array2::<f32>::zeros([shape[0] * shape[1], shape[2]])),
+                shape: shape,
+            };
+        } else if dims == 4 {
+            return Self {
+                data: TensorKind::from(Array2::<f32>::zeros([
+                    shape[0] * shape[1] * shape[2],
+                    shape[3],
+                ])),
+                shape: shape,
+            };
+        } else {
+            panic!("not support float tensor with 5 dims or more");
+        }
+    }
+
+    pub fn zeros_double(shape: Vec<usize>) -> Tensor {
+        let dims = shape.len();
+        if dims == 1 {
+            return Self {
+                data: TensorKind::from(Array1::<f64>::zeros([shape[0]])),
+                shape: shape,
+            };
+        } else if dims == 2 {
+            return Self {
+                data: TensorKind::from(Array2::<f64>::zeros([shape[0], shape[1]])),
+                shape: shape,
+            };
+        } else if dims == 3 {
+            return Self {
+                data: TensorKind::from(Array2::<f64>::zeros([shape[0] * shape[1], shape[2]])),
+                shape: shape,
+            };
+        } else if dims == 4 {
+            return Self {
+                data: TensorKind::from(Array2::<f64>::zeros([
+                    shape[0] * shape[1] * shape[2],
+                    shape[3],
+                ])),
+                shape: shape,
+            };
+        } else {
+            panic!("not support float tensor with 5 dims or more");
+        }
+    }
+
+    // TODO impl normal
+    // TODO impl uniform_double
+    pub fn uniform(shape: Vec<usize>, min: f32, max: f32) -> Tensor {
+        let dims = shape.len();
+        if dims == 1 {
+            return Self {
+                data: TensorKind::from(Array1::<f32>::random(
+                    shape[0],
+                    Uniform::<f32>::new(min, max),
+                )),
+                shape: shape,
+            };
+        } else if dims == 2 {
+            return Self {
+                data: TensorKind::from(Array2::<f32>::random(
+                    [shape[0], shape[1]],
+                    Uniform::<f32>::new(min, max),
+                )),
+                shape: shape,
+            };
+        } else if dims == 3 {
+            return Self {
+                data: TensorKind::from(Array2::<f32>::random(
+                    [shape[0] * shape[1], shape[2]],
+                    Uniform::<f32>::new(min, max),
+                )),
+                shape: shape,
+            };
+        } else if dims == 4 {
+            return Self {
+                data: TensorKind::from(Array2::<f32>::random(
+                    [shape[0] * shape[1] * shape[2], shape[3]],
+                    Uniform::<f32>::new(min, max),
+                )),
+                shape: shape,
+            };
+        } else {
+            panic!("not support tensor with 5 dims or more");
+        }
+    }
+}
+
+#[cfg(test)]
+
+mod tests {
+    use super::*;
+    use ndarray::*;
+    use ndarray_rand::rand_distr::Uniform;
+
+    #[test]
+    fn test_zeros_1d() {
+        let blast = Tensor::zeros(vec![64]);
+        let reft = TensorKind::FloatVector(Array::<f32, _>::zeros(64));
+        assert_eq!(blast.data, reft);
+    }
+
+    #[test]
+    fn test_zeros_1d_double() {
+        let blast = Tensor::zeros_double(vec![64]);
+        let reft = TensorKind::DoubleVector(Array::<f64, _>::zeros(64));
+        assert_eq!(blast.data, reft);
+    }
+
+    // TODO support i-types
+    // #[test]
+    // fn test_zeros_1d_i8() {
+    //     let blast = Tensor::<i8>::zeros(vec![64]);
+    //     let reft = TensorKind::Vector(Array::<i8, _>::zeros(64));
+    //     assert_eq!(blast.data, reft);
+    // }
+
+    #[test]
+    fn test_zeros_2d() {
+        let blast = Tensor::zeros(vec![64, 32]);
+        let reft = TensorKind::FloatMatrix(Array::<f32, _>::zeros((64, 32)));
+        assert_eq!(blast.data, reft);
+    }
+
+    #[test]
+    fn test_zeros_3d() {
+        let blast = Tensor::zeros(vec![8, 64, 32]);
+        let reft = TensorKind::FloatMatrix(Array::<f32, _>::zeros((512, 32)));
+        assert_eq!(blast.data, reft);
+    }
+
+    #[test]
+    fn test_zeros_4d() {
+        let blast = Tensor::zeros(vec![8, 2, 64, 32]);
+        let reft = TensorKind::FloatMatrix(Array::<f32, _>::zeros((1024, 32)));
+        assert_eq!(blast.data, reft);
+    }
+
+    // TODO impl rand_isaac with fixed seed, then compare contents
+    #[test]
+    fn test_random_1d() {
+        let blast = Tensor::uniform(vec![64], -1.0, 1.0);
+        let reft = TensorKind::FloatVector(Array::random(64, Uniform::new(-1f32, 1.)));
+        // assert_eq!(blast.data.into().shape(), reft.into().shape());
+    }
+
+    // #[test]
+    // fn test_uniform_1d_double() {
+    //     let blast = Tensor::<f64>::uniform(vec![64], -1f32, 1.0);
+    //     let reft = TensorKind::Vector(Array::<f64, _>::uniform(64));
+    //     assert_eq!(blast.data, reft);
+    // }
+
+    // #[test]
+    // fn test_uniform_1d_i8() {
+    //     let blast = Tensor::<i8>::uniform(vec![64], -1f32, 1.0);
+    //     let reft = TensorKind::Vector(Array::<i8, _>::uniform(64));
+    //     assert_eq!(blast.data, reft);
+    // }
+
+    // #[test]
+    // fn test_uniform_2d() {
+    //     let blast = Tensor::<f32>::uniform(vec![64, 32], -1f32, 1.0);
+    //     let reft = TensorKind::Matrix(Array::<f32, _>::uniform((64, 32)));
+    //     assert_eq!(blast.data, reft);
+    // }
+
+    // #[test]
+    // fn test_uniform_3d() {
+    //     let blast = Tensor::<f32>::uniform(vec![8, 64, 32], -1f32, 1.0);
+    //     let reft = TensorKind::Matrix(Array::<f32, _>::uniform((512, 32)));
+    //     assert_eq!(blast.data, reft);
+    // }
+
+    // #[test]
+    // fn test_uniform_4d() {
+    //     let blast = Tensor::<f32>::uniform(vec![8, 2, 64, 32], -1f32, 1.0);
+    //     let reft = TensorKind::Matrix(Array::<f32, _>::uniform((1024, 32)));
+    //     assert_eq!(blast.data, reft);
+    // }
 }

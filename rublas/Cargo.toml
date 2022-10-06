@@ -17,6 +17,7 @@ description = "wrapper project for integrating ndarray + blas libs into Chopper 
 # currently pick a workable one but may bump up to later version if available
 
 [dependencies]
+num-traits = "0.2"
 ndarray-vanilla = { package = "ndarray", version = "0.15", optional = true }
 ndarray-blas = { package = "ndarray", version = "0.14", path = "../ndarray", optional = true, features = ["blas"] }
 ndarray-linalg = { package = "ndarray-linalg", version = "0.13", optional = true, path = "../ndarray-linalg/ndarray-linalg", features = ["netlib-system"] }
@@ -36,6 +37,10 @@ criterion = { version = "0.3", features = ["html_reports"] }
 default = ["ndarray-vanilla"]
 openblas = ["ndarray-blas", "blas-src-openblas", "openblas-src"]
 netlib = ["ndarray-blas", "blas-src-netlib"]
+
+[[bench]]
+name = "basic"
+harness = false
 
 [[bench]]
 name = "gemv"

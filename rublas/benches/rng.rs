@@ -55,7 +55,10 @@ fn rng_normal(crit: &mut Criterion) {
             mat_size,
             |bench, msize| {
                 bench.iter(|| {
-                    black_box(Array::random((*msize, *msize), Normal::new(-1f32, 1.).unwrap()));
+                    black_box(Array::random(
+                        (*msize, *msize),
+                        Normal::new(-1f32, 1.).unwrap(),
+                    ));
                 });
             },
         );
@@ -64,7 +67,10 @@ fn rng_normal(crit: &mut Criterion) {
             mat_size,
             |bench, msize| {
                 bench.iter(|| {
-                    black_box(Array::random((*msize, *msize), Normal::new(-1f64, 1.).unwrap()));
+                    black_box(Array::random(
+                        (*msize, *msize),
+                        Normal::new(-1f64, 1.).unwrap(),
+                    ));
                 });
             },
         );
