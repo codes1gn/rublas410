@@ -28,8 +28,8 @@ use rublas::prelude::*;
 fn gemm_ndarray(crit: &mut Criterion) {
     let mut bench_group = crit.benchmark_group("gemm_ndarray");
     bench_group.sample_size(10);
-    for Msize in vec![16, 256, 4096].iter() {
-        for Ksize in vec![16, 256, 4096].iter() {
+    for Msize in vec![4096].iter() {
+        for Ksize in vec![512, 4096].iter() {
             bench_group.bench_with_input(
                 BenchmarkId::new(format!("M{}_K{}_f32", Msize, Ksize), 0),
                 Msize,
@@ -42,19 +42,19 @@ fn gemm_ndarray(crit: &mut Criterion) {
                     });
                 },
             );
-            bench_group.bench_with_input(
-                BenchmarkId::new(format!("M{}_K{}_f64", Msize, Ksize), 0),
-                Msize,
-                |bench, msize| {
-                    let a = Array2::<f64>::zeros((*Msize, *Ksize));
-                    let (m, n) = a.dim();
-                    let x = Array1::<f64>::zeros(n);
-                    let mut y = Array1::<f64>::zeros(m);
-                    bench.iter(|| {
-                        black_box(general_mat_vec_mul(1.0, &a, &x, 1.0, &mut y));
-                    });
-                },
-            );
+            // bench_group.bench_with_input(
+            //     BenchmarkId::new(format!("M{}_K{}_f64", Msize, Ksize), 0),
+            //     Msize,
+            //     |bench, msize| {
+            //         let a = Array2::<f64>::zeros((*Msize, *Ksize));
+            //         let (m, n) = a.dim();
+            //         let x = Array1::<f64>::zeros(n);
+            //         let mut y = Array1::<f64>::zeros(m);
+            //         bench.iter(|| {
+            //             black_box(general_mat_vec_mul(1.0, &a, &x, 1.0, &mut y));
+            //         });
+            //     },
+            // );
         }
     }
 }
@@ -62,8 +62,8 @@ fn gemm_ndarray(crit: &mut Criterion) {
 fn gemm_rublas(crit: &mut Criterion) {
     let mut bench_group = crit.benchmark_group("gemm_rublas");
     bench_group.sample_size(10);
-    for Msize in vec![16, 256, 4096].iter() {
-        for Ksize in vec![16, 256, 4096].iter() {
+    for Msize in vec![4096].iter() {
+        for Ksize in vec![512, 4096].iter() {
             bench_group.bench_with_input(
                 BenchmarkId::new(format!("M{}_K{}_f32", Msize, Ksize), 0),
                 Msize,
@@ -81,5 +81,26 @@ fn gemm_rublas(crit: &mut Criterion) {
     }
 }
 
-criterion_group!(gemm_tests, gemm_ndarray, gemm_rublas);
+fn gemm_rublas_owned(crit: &mut Criterion) {
+    let mut bench_group = crit.benchmark_group("gemm_rublas");
+    bench_group.sample_size(10);
+    for Msize in vec![4096].iter() {
+        for Ksize in vec![512, 4096].iter() {
+            bench_group.bench_with_input(
+                BenchmarkId::new(format!("M{}_K{}_f32", Msize, Ksize), 0),
+                Msize,
+                |bench, msize| {
+                    let exec = BlasExecutor::new();
+                    bench.iter(|| {
+                        let lhs = BlasTensor::ones(vec![*Msize, *Ksize]);
+                        let rhs = BlasTensor::ones(vec![*Ksize, *Msize]);
+                        black_box(exec.gemm_nn_owned(lhs, rhs));
+                    });
+                },
+            );
+        }
+    }
+}
+
+criterion_group!(gemm_tests, gemm_ndarray, gemm_rublas, gemm_rublas_owned);
 criterion_main!(gemm_tests);
