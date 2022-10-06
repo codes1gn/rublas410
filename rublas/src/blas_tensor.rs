@@ -58,14 +58,32 @@ impl From<Array2<f64>> for TensorKind {
 // TODO only allow channel_last data layout that contineous along
 // last dims
 #[derive(Debug, PartialEq)]
-pub struct Tensor {
+pub struct BlasTensor {
     pub data: TensorKind,
     pub shape: Vec<usize>,
 }
 
-impl Tensor {
+impl BlasTensor {
+    pub fn ndims(&self) -> usize {
+        self.shape.len()
+    }
+
+    pub fn shape(&self) -> Vec<usize> {
+        self.shape.clone()
+    }
+
+    // TODO support 2D
+    pub fn from(raw_data: Vec<f32>) -> BlasTensor {
+        let raw_shape = vec![raw_data.len()];
+        BlasTensor {
+            data: TensorKind::from(Array::from(raw_data)),
+            shape: raw_shape,
+        }
+        
+    }
+
     // TODO patch match on shape len
-    pub fn zeros(shape: Vec<usize>) -> Tensor {
+    pub fn zeros(shape: Vec<usize>) -> BlasTensor {
         let dims = shape.len();
         if dims == 1 {
             return Self {
@@ -95,7 +113,7 @@ impl Tensor {
         }
     }
 
-    pub fn zeros_double(shape: Vec<usize>) -> Tensor {
+    pub fn zeros_double(shape: Vec<usize>) -> BlasTensor {
         let dims = shape.len();
         if dims == 1 {
             return Self {
@@ -127,7 +145,8 @@ impl Tensor {
 
     // TODO impl normal
     // TODO impl uniform_double
-    pub fn uniform(shape: Vec<usize>, min: f32, max: f32) -> Tensor {
+    // TODO refactor to pattern-match style
+    pub fn uniform(shape: Vec<usize>, min: f32, max: f32) -> BlasTensor {
         let dims = shape.len();
         if dims == 1 {
             return Self {
@@ -176,14 +195,14 @@ mod tests {
 
     #[test]
     fn test_zeros_1d() {
-        let blast = Tensor::zeros(vec![64]);
+        let blast = BlasTensor::zeros(vec![64]);
         let reft = TensorKind::FloatVector(Array::<f32, _>::zeros(64));
         assert_eq!(blast.data, reft);
     }
 
     #[test]
     fn test_zeros_1d_double() {
-        let blast = Tensor::zeros_double(vec![64]);
+        let blast = BlasTensor::zeros_double(vec![64]);
         let reft = TensorKind::DoubleVector(Array::<f64, _>::zeros(64));
         assert_eq!(blast.data, reft);
     }
@@ -191,72 +210,79 @@ mod tests {
     // TODO support i-types
     // #[test]
     // fn test_zeros_1d_i8() {
-    //     let blast = Tensor::<i8>::zeros(vec![64]);
+    //     let blast = BlasTensor::<i8>::zeros(vec![64]);
     //     let reft = TensorKind::Vector(Array::<i8, _>::zeros(64));
     //     assert_eq!(blast.data, reft);
     // }
 
     #[test]
     fn test_zeros_2d() {
-        let blast = Tensor::zeros(vec![64, 32]);
+        let blast = BlasTensor::zeros(vec![64, 32]);
         let reft = TensorKind::FloatMatrix(Array::<f32, _>::zeros((64, 32)));
         assert_eq!(blast.data, reft);
     }
 
     #[test]
     fn test_zeros_3d() {
-        let blast = Tensor::zeros(vec![8, 64, 32]);
+        let blast = BlasTensor::zeros(vec![8, 64, 32]);
         let reft = TensorKind::FloatMatrix(Array::<f32, _>::zeros((512, 32)));
         assert_eq!(blast.data, reft);
     }
 
     #[test]
     fn test_zeros_4d() {
-        let blast = Tensor::zeros(vec![8, 2, 64, 32]);
+        let blast = BlasTensor::zeros(vec![8, 2, 64, 32]);
         let reft = TensorKind::FloatMatrix(Array::<f32, _>::zeros((1024, 32)));
         assert_eq!(blast.data, reft);
     }
 
     // TODO impl rand_isaac with fixed seed, then compare contents
     #[test]
-    fn test_random_1d() {
-        let blast = Tensor::uniform(vec![64], -1.0, 1.0);
+    fn test_uniform_1d() {
+        let blast = BlasTensor::uniform(vec![64], -1.0, 1.0);
         let reft = TensorKind::FloatVector(Array::random(64, Uniform::new(-1f32, 1.)));
         // assert_eq!(blast.data.into().shape(), reft.into().shape());
     }
 
-    // #[test]
-    // fn test_uniform_1d_double() {
-    //     let blast = Tensor::<f64>::uniform(vec![64], -1f32, 1.0);
-    //     let reft = TensorKind::Vector(Array::<f64, _>::uniform(64));
-    //     assert_eq!(blast.data, reft);
-    // }
+    #[ignore]
+    #[test]
+    fn test_uniform_1d_double() {
+        let blast = BlasTensor::uniform(vec![64], -1f32, 1.0);
+        let reft = TensorKind::DoubleVector(Array::random(64, Uniform::new(-1f64, 1.)));
+        // assert_eq!(blast.data, reft);
+    }
+
+    #[test]
+    fn test_uniform_2d() {
+        let blast = BlasTensor::uniform(vec![64, 32], -1f32, 1.0);
+        let reft = TensorKind::FloatMatrix(Array::random([64, 32], Uniform::new(-1f32, 1.)));
+        // assert_eq!(blast.data, reft);
+    }
+
+    #[test]
+    fn test_uniform_3d() {
+        let blast = BlasTensor::uniform(vec![8, 64, 32], -1f32, 1.0);
+        let reft = TensorKind::FloatMatrix(Array::random([512, 32], Uniform::new(-1f32, 1.)));
+        // assert_eq!(blast.data, reft);
+    }
+
+    #[test]
+    fn test_uniform_4d() {
+        let blast = BlasTensor::uniform(vec![8, 2, 64, 32], -1f32, 1.0);
+        let reft = TensorKind::FloatMatrix(Array::random([1024, 32], Uniform::new(-1f32, 1.)));
+        // assert_eq!(blast.data, reft);
+    }
+
+    #[test]
+    fn test_build_from_1d() {
+        let blast = BlasTensor::from(vec![1.7, 2.3, 3.3, 4.1]);
+        // let reft = TensorKind::FloatVector(Array::from(vec![1.7, 2.3, 3.3, 4.1]));
+        assert_eq!(blast.shape(), vec![4]);
+    }
 
     // #[test]
-    // fn test_uniform_1d_i8() {
-    //     let blast = Tensor::<i8>::uniform(vec![64], -1f32, 1.0);
-    //     let reft = TensorKind::Vector(Array::<i8, _>::uniform(64));
-    //     assert_eq!(blast.data, reft);
-    // }
-
-    // #[test]
-    // fn test_uniform_2d() {
-    //     let blast = Tensor::<f32>::uniform(vec![64, 32], -1f32, 1.0);
-    //     let reft = TensorKind::Matrix(Array::<f32, _>::uniform((64, 32)));
-    //     assert_eq!(blast.data, reft);
-    // }
-
-    // #[test]
-    // fn test_uniform_3d() {
-    //     let blast = Tensor::<f32>::uniform(vec![8, 64, 32], -1f32, 1.0);
-    //     let reft = TensorKind::Matrix(Array::<f32, _>::uniform((512, 32)));
-    //     assert_eq!(blast.data, reft);
-    // }
-
-    // #[test]
-    // fn test_uniform_4d() {
-    //     let blast = Tensor::<f32>::uniform(vec![8, 2, 64, 32], -1f32, 1.0);
-    //     let reft = TensorKind::Matrix(Array::<f32, _>::uniform((1024, 32)));
-    //     assert_eq!(blast.data, reft);
+    // fn test_build_from_2d() {
+    //     let blast = BlasTensor::from(vec![[1.7, 2.3, 3.3, 4.1], [1.7, 2.3, 3.3, 4.1]]);
+    //     assert_eq!(blast.shape(), vec![2, 4]);
     // }
 }

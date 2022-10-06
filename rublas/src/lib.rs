@@ -11,22 +11,13 @@ extern crate ndarray_blas as ndarray;
 #[cfg(feature = "netlib")]
 extern crate ndarray_blas as ndarray;
 
-pub mod tensor;
+pub mod blas_tensor;
+pub mod blas_executor;
 
 /// Prelude module for users to import
-///
-/// ```
-/// use rublas::prelude::*;
-///
-/// let a = arr2(&[[1, 2, 3], [4, 5, 6]]);
-/// let b = arr2(&[[6, 3], [5, 2], [4, 1]]);
-/// println!("{}", a.dot(&b));
-///
-/// let result = 2 + 2;
-/// assert_eq!(result, 4);
-/// ```
 pub mod prelude {
-    pub use ndarray::prelude::{arr2, Array1, Array2};
+    pub use crate::blas_tensor::BlasTensor;
+    pub use crate::blas_executor::BlasExecutor;
 }
 
 // TODO use custom measurements: TFLOPS for criterion

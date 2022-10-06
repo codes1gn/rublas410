@@ -23,6 +23,30 @@ use ndarray_rand::F32;
 use criterion::*;
 use rublas::prelude::*;
 
+fn rng_zeros(crit: &mut Criterion) {
+    let mut bench_group = crit.benchmark_group("rng_zeros");
+    for mat_size in vec![16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192].iter() {
+        bench_group.bench_with_input(
+            BenchmarkId::new(format!("{}_{}_f32", mat_size, mat_size), mat_size),
+            mat_size,
+            |bench, msize| {
+                bench.iter(|| {
+                    black_box(Array::<f32, _>::zeros((*msize, *msize)));
+                });
+            },
+        );
+        bench_group.bench_with_input(
+            BenchmarkId::new(format!("{}_{}_f64", mat_size, mat_size), mat_size),
+            mat_size,
+            |bench, msize| {
+                bench.iter(|| {
+                    black_box(Array::<f32, _>::zeros((*msize, *msize)));
+                });
+            },
+        );
+    }
+}
+
 fn rng_uniform(crit: &mut Criterion) {
     let mut bench_group = crit.benchmark_group("rng_uniform");
     for mat_size in vec![16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192].iter() {
@@ -78,7 +102,7 @@ fn rng_normal(crit: &mut Criterion) {
 }
 
 // TODO other rng patterns
-criterion_group!(rng_tests, rng_uniform, rng_normal);
+criterion_group!(rng_tests, rng_zeros, rng_uniform, rng_normal);
 criterion_main!(rng_tests);
 
 //  #[bench]
