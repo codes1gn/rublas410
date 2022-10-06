@@ -18,6 +18,7 @@ pub mod blas_tensor;
 pub mod prelude {
     pub use crate::blas_executor::BlasExecutor;
     pub use crate::blas_tensor::BlasTensor;
+    pub use ndarray::prelude::{arr1, arr2, Array, Array1, Array2};
 }
 
 // TODO use custom measurements: TFLOPS for criterion

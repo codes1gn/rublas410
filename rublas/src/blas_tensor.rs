@@ -81,6 +81,46 @@ impl BlasTensor {
         }
     }
 
+    pub fn from_vec_shape(raw_data: Vec<f32>, shape: Vec<usize>) -> BlasTensor {
+        let dims = shape.len();
+        if dims == 1 {
+            return BlasTensor {
+                data: TensorKind::from(
+                    Array1::<f32>::from_shape_vec([shape[0]], raw_data).unwrap(),
+                ),
+                shape: shape,
+            };
+        } else if dims == 2 {
+            return Self {
+                data: TensorKind::from(
+                    Array2::<f32>::from_shape_vec([shape[0], shape[1]], raw_data).unwrap(),
+                ),
+                shape: shape,
+            };
+        } else if dims == 3 {
+            return Self {
+                data: TensorKind::from(
+                    Array2::<f32>::from_shape_vec([shape[0] * shape[1], shape[2]], raw_data)
+                        .unwrap(),
+                ),
+                shape: shape,
+            };
+        } else if dims == 4 {
+            return Self {
+                data: TensorKind::from(
+                    Array2::<f32>::from_shape_vec(
+                        [shape[0] * shape[1] * shape[2], shape[3]],
+                        raw_data,
+                    )
+                    .unwrap(),
+                ),
+                shape: shape,
+            };
+        } else {
+            panic!("not support float tensor with 5 dims or more");
+        }
+    }
+
     // TODO patch match on shape len
     pub fn zeros(shape: Vec<usize>) -> BlasTensor {
         let dims = shape.len();
@@ -324,9 +364,14 @@ mod tests {
         assert_eq!(blast.data, reft);
     }
 
-    // #[test]
-    // fn test_build_from_2d() {
-    //     let blast = BlasTensor::from(vec![[1.7, 2.3, 3.3, 4.1], [1.7, 2.3, 3.3, 4.1]]);
-    //     assert_eq!(blast.shape(), vec![2, 4]);
-    // }
+    #[test]
+    fn test_build_from_2d() {
+        let blast =
+            BlasTensor::from_vec_shape(vec![1.7, 2.3, 3.3, 4.1, 1.7, 2.3, 3.3, 4.1], vec![2, 4]);
+        let reft = TensorKind::FloatMatrix(
+            Array::from_shape_vec([2, 4], vec![1.7, 2.3, 3.3, 4.1, 1.7, 2.3, 3.3, 4.1]).unwrap(),
+        );
+        assert_eq!(blast.shape(), vec![2, 4]);
+        assert_eq!(blast.data, reft);
+    }
 }

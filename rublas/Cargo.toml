@@ -17,7 +17,11 @@ description = "wrapper project for integrating ndarray + blas libs into Chopper 
 # currently pick a workable one but may bump up to later version if available
 
 [dependencies]
+
+# basic deps
 num-traits = "0.2"
+
+# backend deps
 ndarray-vanilla = { package = "ndarray", version = "0.15", optional = true }
 ndarray-blas = { package = "ndarray", version = "0.14", path = "../ndarray", optional = true, features = ["blas"] }
 ndarray-linalg = { package = "ndarray-linalg", version = "0.13", optional = true, path = "../ndarray-linalg/ndarray-linalg", features = ["netlib-system"] }
