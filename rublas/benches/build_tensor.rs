@@ -72,5 +72,5 @@ fn uniform_builder(crit: &mut Criterion) {
 }
 
 // TODO other rng patterns
-criterion_group!(ablation_tests, zeros_builder, uniform_builder);
-criterion_main!(ablation_tests);
+criterion_group!(build_tensor_tests, zeros_builder, uniform_builder);
+criterion_main!(build_tensor_tests);

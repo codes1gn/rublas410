@@ -26,6 +26,7 @@ use rublas::prelude::*;
 // TODO add a gemv_legacy
 fn gemv_zero(crit: &mut Criterion) {
     let mut bench_group = crit.benchmark_group("gemv_zero");
+    bench_group.sample_size(10);
     for Msize in vec![16, 64, 256, 1024, 4096].iter() {
         for Ksize in vec![16, 64, 256, 1024, 4096].iter() {
             bench_group.bench_with_input(
@@ -60,6 +61,7 @@ fn gemv_zero(crit: &mut Criterion) {
 
 fn gemv_uniform(crit: &mut Criterion) {
     let mut bench_group = crit.benchmark_group("gemv_uniform");
+    bench_group.sample_size(10);
     for Msize in vec![16, 64, 256, 1024, 4096].iter() {
         for Ksize in vec![16, 64, 256, 1024, 4096].iter() {
             bench_group.bench_with_input(

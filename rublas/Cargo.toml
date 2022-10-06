@@ -51,10 +51,14 @@ name = "gemv"
 harness = false
 
 [[bench]]
+name = "gemm"
+harness = false
+
+[[bench]]
 name = "rng"
 harness = false
 
 [[bench]]
-name = "tensor_create_ablation"
+name = "build_tensor"
 harness = false
 

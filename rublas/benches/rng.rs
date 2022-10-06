@@ -25,6 +25,7 @@ use rublas::prelude::*;
 
 fn rng_zeros(crit: &mut Criterion) {
     let mut bench_group = crit.benchmark_group("rng_zeros");
+    bench_group.sample_size(10);
     for mat_size in vec![16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192].iter() {
         bench_group.bench_with_input(
             BenchmarkId::new(format!("{}_{}_f32", mat_size, mat_size), mat_size),
@@ -49,6 +50,7 @@ fn rng_zeros(crit: &mut Criterion) {
 
 fn rng_uniform(crit: &mut Criterion) {
     let mut bench_group = crit.benchmark_group("rng_uniform");
+    bench_group.sample_size(10);
     for mat_size in vec![16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192].iter() {
         bench_group.bench_with_input(
             BenchmarkId::new(format!("{}_{}_f32", mat_size, mat_size), mat_size),
@@ -73,6 +75,7 @@ fn rng_uniform(crit: &mut Criterion) {
 
 fn rng_normal(crit: &mut Criterion) {
     let mut bench_group = crit.benchmark_group("rng_normal");
+    bench_group.sample_size(10);
     for mat_size in vec![16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192].iter() {
         bench_group.bench_with_input(
             BenchmarkId::new(format!("{}_{}_f32", mat_size, mat_size), mat_size),
