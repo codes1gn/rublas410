@@ -54,3 +54,7 @@ harness = false
 name = "rng"
 harness = false
 
+[[bench]]
+name = "tensor_create_ablation"
+harness = false
+
