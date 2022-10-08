@@ -1,4 +1,3 @@
-
 // TODO move to CRT instructions to register
 // impl From<CompleteStr<'_>> for OpCode {
 //     fn from(s: CompleteStr<'_>) -> Self {
@@ -24,9 +23,14 @@
 pub enum BlasOpCode {
     AddF,
     AddD,
+    SubF,
+    SubD,
+    MulF,
+    MulD,
+    DivF,
+    DivD,
     GemmF,
     GemmD,
     GemvF,
     GemvD,
 }
-

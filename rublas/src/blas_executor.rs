@@ -1,8 +1,8 @@
 use ndarray::linalg::general_mat_mul;
 use ndarray::linalg::general_mat_vec_mul;
 
-use crate::blas_tensor::{BlasTensor, TensorKind};
 use crate::blas_opcode::BlasOpCode;
+use crate::blas_tensor::{BlasTensor, TensorKind};
 use crate::prelude::Array2;
 
 #[derive(Debug)]
@@ -13,29 +13,43 @@ impl BlasExecutor {
         Self {}
     }
 
-    pub fn binary_compute_owned(&self, op: BlasOpCode, lhs: BlasTensor, rhs: BlasTensor) -> BlasTensor {
+    pub fn binary_compute_owned(
+        &self,
+        op: BlasOpCode,
+        lhs: BlasTensor,
+        rhs: BlasTensor,
+    ) -> BlasTensor {
         match op {
-            BlasOpCode::AddF => {
-                self.addf32_owned(lhs, rhs)
-            },
-            BlasOpCode::GemmF => {
-                self.gemm_owned(lhs, rhs)
-            },
+            BlasOpCode::AddF => self.addf32_owned(lhs, rhs),
+            BlasOpCode::SubF => self.subf32_owned(lhs, rhs),
+            BlasOpCode::MulF => self.mulf32_owned(lhs, rhs),
+            BlasOpCode::DivF => self.divf32_owned(lhs, rhs),
+            BlasOpCode::GemmF => self.gemm_owned(lhs, rhs),
             _ => panic!("not wired opcode"),
         }
     }
 
-    pub fn binary_compute_side_effect(&self, op: BlasOpCode, lhs: &BlasTensor, rhs: &BlasTensor, out: &mut BlasTensor) {
+    pub fn binary_compute_side_effect(
+        &self,
+        op: BlasOpCode,
+        lhs: &BlasTensor,
+        rhs: &BlasTensor,
+        out: &mut BlasTensor,
+    ) {
         match op {
-            BlasOpCode::AddF => {
-                self.addf32_side_effect(lhs, rhs, out)
-            },
-            BlasOpCode::GemmF => {
-                self.gemm_side_effect(lhs, rhs, out)
-            },
+            BlasOpCode::AddF => self.addf32_side_effect(lhs, rhs, out),
+            // BlasOpCode::SubF => {
+            //     self.subf32_side_effect(lhs, rhs, out)
+            // },
+            // BlasOpCode::MulF => {
+            //     self.mulf32_side_effect(lhs, rhs, out)
+            // },
+            // BlasOpCode::DivF => {
+            //     self.divf32_side_effect(lhs, rhs, out)
+            // },
+            BlasOpCode::GemmF => self.gemm_side_effect(lhs, rhs, out),
             _ => panic!("not wired opcode"),
         }
-
     }
 
     pub fn addf32_owned(&self, lhs: BlasTensor, rhs: BlasTensor) -> BlasTensor {
@@ -54,6 +68,90 @@ impl BlasExecutor {
             TensorKind::FloatMatrix(ref _lhs) => match rhs.data {
                 TensorKind::FloatMatrix(ref _rhs) => {
                     let out_data = _lhs + _rhs;
+                    let mut out = BlasTensor {
+                        data: TensorKind::from(out_data),
+                        shape: vec![lhs.shape[0], rhs.shape[1]],
+                    };
+                    return out;
+                }
+                _ => panic!("rhs operand's type not compatible with return type"),
+            },
+            _ => panic!("lhs operand's type not supported"),
+        }
+    }
+
+    pub fn subf32_owned(&self, lhs: BlasTensor, rhs: BlasTensor) -> BlasTensor {
+        match lhs.data {
+            TensorKind::FloatVector(ref _lhs) => match rhs.data {
+                TensorKind::FloatVector(ref _rhs) => {
+                    let out_data = _lhs - _rhs;
+                    let mut out = BlasTensor {
+                        data: TensorKind::from(out_data),
+                        shape: vec![lhs.shape[0]],
+                    };
+                    return out;
+                }
+                _ => panic!("rhs operand's type not compatible with return type"),
+            },
+            TensorKind::FloatMatrix(ref _lhs) => match rhs.data {
+                TensorKind::FloatMatrix(ref _rhs) => {
+                    let out_data = _lhs - _rhs;
+                    let mut out = BlasTensor {
+                        data: TensorKind::from(out_data),
+                        shape: vec![lhs.shape[0], rhs.shape[1]],
+                    };
+                    return out;
+                }
+                _ => panic!("rhs operand's type not compatible with return type"),
+            },
+            _ => panic!("lhs operand's type not supported"),
+        }
+    }
+
+    pub fn mulf32_owned(&self, lhs: BlasTensor, rhs: BlasTensor) -> BlasTensor {
+        match lhs.data {
+            TensorKind::FloatVector(ref _lhs) => match rhs.data {
+                TensorKind::FloatVector(ref _rhs) => {
+                    let out_data = _lhs * _rhs;
+                    let mut out = BlasTensor {
+                        data: TensorKind::from(out_data),
+                        shape: vec![lhs.shape[0]],
+                    };
+                    return out;
+                }
+                _ => panic!("rhs operand's type not compatible with return type"),
+            },
+            TensorKind::FloatMatrix(ref _lhs) => match rhs.data {
+                TensorKind::FloatMatrix(ref _rhs) => {
+                    let out_data = _lhs * _rhs;
+                    let mut out = BlasTensor {
+                        data: TensorKind::from(out_data),
+                        shape: vec![lhs.shape[0], rhs.shape[1]],
+                    };
+                    return out;
+                }
+                _ => panic!("rhs operand's type not compatible with return type"),
+            },
+            _ => panic!("lhs operand's type not supported"),
+        }
+    }
+
+    pub fn divf32_owned(&self, lhs: BlasTensor, rhs: BlasTensor) -> BlasTensor {
+        match lhs.data {
+            TensorKind::FloatVector(ref _lhs) => match rhs.data {
+                TensorKind::FloatVector(ref _rhs) => {
+                    let out_data = _lhs / _rhs;
+                    let mut out = BlasTensor {
+                        data: TensorKind::from(out_data),
+                        shape: vec![lhs.shape[0]],
+                    };
+                    return out;
+                }
+                _ => panic!("rhs operand's type not compatible with return type"),
+            },
+            TensorKind::FloatMatrix(ref _lhs) => match rhs.data {
+                TensorKind::FloatMatrix(ref _rhs) => {
+                    let out_data = _lhs / _rhs;
                     let mut out = BlasTensor {
                         data: TensorKind::from(out_data),
                         shape: vec![lhs.shape[0], rhs.shape[1]],
@@ -169,6 +267,45 @@ mod tests {
 
         let exec = BlasExecutor::new();
         let c = exec.addf32_owned(a, b);
+        assert_eq!(c.ndims(), 2);
+        assert_eq!(c.shape(), [2, 3]);
+        assert_eq!(c, cref);
+    }
+
+    #[test]
+    fn test_subf32_owned() {
+        let a = BlasTensor::from_vec_shape(vec![2.2, 4.4, 6.6, 8.8, 11., 13.2], vec![2, 3]);
+        let b = BlasTensor::from_vec_shape(vec![1.1, 2.2, 3.3, 4.4, 5.5, 6.6], vec![2, 3]);
+        let cref = BlasTensor::from_vec_shape(vec![1.1, 2.2, 3.3, 4.4, 5.5, 6.6], vec![2, 3]);
+
+        let exec = BlasExecutor::new();
+        let c = exec.subf32_owned(a, b);
+        assert_eq!(c.ndims(), 2);
+        assert_eq!(c.shape(), [2, 3]);
+        assert_eq!(c, cref);
+    }
+
+    #[test]
+    fn test_mulf32_owned() {
+        let a = BlasTensor::from_vec_shape(vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0], vec![2, 3]);
+        let b = BlasTensor::from_vec_shape(vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0], vec![2, 3]);
+        let cref = BlasTensor::from_vec_shape(vec![1.0, 4.0, 9.0, 16.0, 25.0, 36.0], vec![2, 3]);
+
+        let exec = BlasExecutor::new();
+        let c = exec.mulf32_owned(a, b);
+        assert_eq!(c.ndims(), 2);
+        assert_eq!(c.shape(), [2, 3]);
+        assert_eq!(c, cref);
+    }
+
+    #[test]
+    fn test_divf32_owned() {
+        let a = BlasTensor::from_vec_shape(vec![1.1, 2.2, 3.3, 4.4, 5.5, 6.6], vec![2, 3]);
+        let b = BlasTensor::from_vec_shape(vec![1.1, 2.2, 3.3, 4.4, 5.5, 6.6], vec![2, 3]);
+        let cref = BlasTensor::from_vec_shape(vec![1.0, 1.0, 1.0, 1.0, 1.0, 1.0], vec![2, 3]);
+
+        let exec = BlasExecutor::new();
+        let c = exec.divf32_owned(a, b);
         assert_eq!(c.ndims(), 2);
         assert_eq!(c.shape(), [2, 3]);
         assert_eq!(c, cref);

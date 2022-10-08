@@ -12,8 +12,8 @@ extern crate ndarray_blas as ndarray;
 extern crate ndarray_blas as ndarray;
 
 pub mod blas_executor;
-pub mod blas_tensor;
 pub mod blas_opcode;
+pub mod blas_tensor;
 
 /// Prelude module for users to import
 pub mod prelude {
@@ -22,8 +22,8 @@ pub mod prelude {
 
     // prelude
     pub use crate::blas_executor::*;
-    pub use crate::blas_tensor::*;
     pub use crate::blas_opcode::*;
+    pub use crate::blas_tensor::*;
 }
 
 // TODO use custom measurements: TFLOPS for criterion

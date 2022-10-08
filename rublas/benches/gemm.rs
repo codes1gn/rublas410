@@ -73,7 +73,7 @@ fn gemm_rublas(crit: &mut Criterion) {
                     let mut out = BlasTensor::zeros(vec![*Msize, *Msize]);
                     let exec = BlasExecutor::new();
                     bench.iter(|| {
-                        black_box(exec.gemm_nn(&lhs, &rhs, &mut out));
+                        black_box(exec.gemm_side_effect(&lhs, &rhs, &mut out));
                     });
                 },
             );
@@ -94,7 +94,7 @@ fn gemm_rublas_owned(crit: &mut Criterion) {
                     bench.iter(|| {
                         let lhs = BlasTensor::ones(vec![*Msize, *Ksize]);
                         let rhs = BlasTensor::ones(vec![*Ksize, *Msize]);
-                        black_box(exec.gemm_nn_owned(lhs, rhs));
+                        black_box(exec.gemm_owned(lhs, rhs));
                     });
                 },
             );
