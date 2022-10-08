@@ -38,15 +38,9 @@ impl BlasExecutor {
     ) {
         match op {
             BlasOpCode::AddF => self.addf32_side_effect(lhs, rhs, out),
-            // BlasOpCode::SubF => {
-            //     self.subf32_side_effect(lhs, rhs, out)
-            // },
-            // BlasOpCode::MulF => {
-            //     self.mulf32_side_effect(lhs, rhs, out)
-            // },
-            // BlasOpCode::DivF => {
-            //     self.divf32_side_effect(lhs, rhs, out)
-            // },
+            BlasOpCode::SubF => self.subf32_side_effect(lhs, rhs, out),
+            BlasOpCode::MulF => self.mulf32_side_effect(lhs, rhs, out),
+            BlasOpCode::DivF => self.divf32_side_effect(lhs, rhs, out),
             BlasOpCode::GemmF => self.gemm_side_effect(lhs, rhs, out),
             _ => panic!("not wired opcode"),
         }
@@ -179,6 +173,84 @@ impl BlasExecutor {
             TensorKind::FloatMatrix(ref _lhs) => match rhs.data {
                 TensorKind::FloatMatrix(ref _rhs) => {
                     let out_data = _lhs + _rhs;
+                    *out = BlasTensor {
+                        data: TensorKind::from(out_data),
+                        shape: vec![lhs.shape[0], rhs.shape[1]],
+                    };
+                }
+                _ => panic!("rhs operand's type not compatible with return type"),
+            },
+            _ => panic!("lhs operand's type not supported"),
+        }
+    }
+
+    pub fn subf32_side_effect(&self, lhs: &BlasTensor, rhs: &BlasTensor, out: &mut BlasTensor) {
+        match lhs.data {
+            TensorKind::FloatVector(ref _lhs) => match rhs.data {
+                TensorKind::FloatVector(ref _rhs) => {
+                    let out_data = _lhs - _rhs;
+                    *out = BlasTensor {
+                        data: TensorKind::from(out_data),
+                        shape: vec![lhs.shape[0]],
+                    };
+                }
+                _ => panic!("rhs operand's type not compatible with return type"),
+            },
+            TensorKind::FloatMatrix(ref _lhs) => match rhs.data {
+                TensorKind::FloatMatrix(ref _rhs) => {
+                    let out_data = _lhs - _rhs;
+                    *out = BlasTensor {
+                        data: TensorKind::from(out_data),
+                        shape: vec![lhs.shape[0], rhs.shape[1]],
+                    };
+                }
+                _ => panic!("rhs operand's type not compatible with return type"),
+            },
+            _ => panic!("lhs operand's type not supported"),
+        }
+    }
+
+    pub fn mulf32_side_effect(&self, lhs: &BlasTensor, rhs: &BlasTensor, out: &mut BlasTensor) {
+        match lhs.data {
+            TensorKind::FloatVector(ref _lhs) => match rhs.data {
+                TensorKind::FloatVector(ref _rhs) => {
+                    let out_data = _lhs * _rhs;
+                    *out = BlasTensor {
+                        data: TensorKind::from(out_data),
+                        shape: vec![lhs.shape[0]],
+                    };
+                }
+                _ => panic!("rhs operand's type not compatible with return type"),
+            },
+            TensorKind::FloatMatrix(ref _lhs) => match rhs.data {
+                TensorKind::FloatMatrix(ref _rhs) => {
+                    let out_data = _lhs * _rhs;
+                    *out = BlasTensor {
+                        data: TensorKind::from(out_data),
+                        shape: vec![lhs.shape[0], rhs.shape[1]],
+                    };
+                }
+                _ => panic!("rhs operand's type not compatible with return type"),
+            },
+            _ => panic!("lhs operand's type not supported"),
+        }
+    }
+
+    pub fn divf32_side_effect(&self, lhs: &BlasTensor, rhs: &BlasTensor, out: &mut BlasTensor) {
+        match lhs.data {
+            TensorKind::FloatVector(ref _lhs) => match rhs.data {
+                TensorKind::FloatVector(ref _rhs) => {
+                    let out_data = _lhs / _rhs;
+                    *out = BlasTensor {
+                        data: TensorKind::from(out_data),
+                        shape: vec![lhs.shape[0]],
+                    };
+                }
+                _ => panic!("rhs operand's type not compatible with return type"),
+            },
+            TensorKind::FloatMatrix(ref _lhs) => match rhs.data {
+                TensorKind::FloatMatrix(ref _rhs) => {
+                    let out_data = _lhs / _rhs;
                     *out = BlasTensor {
                         data: TensorKind::from(out_data),
                         shape: vec![lhs.shape[0], rhs.shape[1]],
@@ -326,11 +398,81 @@ mod tests {
     }
 
     #[test]
+    fn test_subf32_side_effect() {
+        let a = BlasTensor::from_vec_shape(vec![2.2, 4.4, 6.6, 8.8, 11., 13.2], vec![2, 3]);
+        let b = BlasTensor::from_vec_shape(vec![1.1, 2.2, 3.3, 4.4, 5.5, 6.6], vec![2, 3]);
+        let mut c = BlasTensor::zeros(vec![2, 3]);
+        let cref = BlasTensor::from_vec_shape(vec![1.1, 2.2, 3.3, 4.4, 5.5, 6.6], vec![2, 3]);
+
+        let exec = BlasExecutor::new();
+        exec.subf32_side_effect(&a, &b, &mut c);
+        assert_eq!(c.ndims(), 2);
+        assert_eq!(c.shape(), [2, 3]);
+        assert_eq!(c, cref);
+    }
+
+    #[test]
+    fn test_mulf32_side_effect() {
+        let a = BlasTensor::from_vec_shape(vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0], vec![2, 3]);
+        let b = BlasTensor::from_vec_shape(vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0], vec![2, 3]);
+        let mut c = BlasTensor::zeros(vec![2, 3]);
+        let cref = BlasTensor::from_vec_shape(vec![1.0, 4.0, 9.0, 16.0, 25.0, 36.0], vec![2, 3]);
+
+        let exec = BlasExecutor::new();
+        exec.mulf32_side_effect(&a, &b, &mut c);
+        assert_eq!(c.ndims(), 2);
+        assert_eq!(c.shape(), [2, 3]);
+        assert_eq!(c, cref);
+    }
+
+    #[test]
+    fn test_divf32_side_effect() {
+        let a = BlasTensor::from_vec_shape(vec![1.1, 2.2, 3.3, 4.4, 5.5, 6.6], vec![2, 3]);
+        let b = BlasTensor::from_vec_shape(vec![1.1, 2.2, 3.3, 4.4, 5.5, 6.6], vec![2, 3]);
+        let mut c = BlasTensor::zeros(vec![2, 3]);
+        let cref = BlasTensor::from_vec_shape(vec![1.0, 1.0, 1.0, 1.0, 1.0, 1.0], vec![2, 3]);
+
+        let exec = BlasExecutor::new();
+        exec.divf32_side_effect(&a, &b, &mut c);
+        assert_eq!(c.ndims(), 2);
+        assert_eq!(c.shape(), [2, 3]);
+        assert_eq!(c, cref);
+    }
+
+    #[test]
     fn test_binary_compute_addf_owned() {
         let a = BlasTensor::from_vec_shape(vec![1.1, 2.2, 3.3, 4.4, 5.5, 6.6], vec![2, 3]);
         let b = BlasTensor::from_vec_shape(vec![1.1, 2.2, 3.3, 4.4, 5.5, 6.6], vec![2, 3]);
         let cref = BlasTensor::from_vec_shape(vec![2.2, 4.4, 6.6, 8.8, 11., 13.2], vec![2, 3]);
         let op = BlasOpCode::AddF;
+
+        let exec = BlasExecutor::new();
+        let c = exec.binary_compute_owned(op, a, b);
+        assert_eq!(c.ndims(), 2);
+        assert_eq!(c.shape(), [2, 3]);
+        assert_eq!(c, cref);
+    }
+
+    #[test]
+    fn test_binary_compute_subf_owned() {
+        let a = BlasTensor::from_vec_shape(vec![1.1, 2.2, 3.3, 4.4, 5.5, 6.6], vec![2, 3]);
+        let b = BlasTensor::from_vec_shape(vec![1.1, 2.2, 3.3, 4.4, 5.5, 6.6], vec![2, 3]);
+        let cref = BlasTensor::from_vec_shape(vec![0.0; 6], vec![2, 3]);
+        let op = BlasOpCode::SubF;
+
+        let exec = BlasExecutor::new();
+        let c = exec.binary_compute_owned(op, a, b);
+        assert_eq!(c.ndims(), 2);
+        assert_eq!(c.shape(), [2, 3]);
+        assert_eq!(c, cref);
+    }
+
+    #[test]
+    fn test_binary_compute_divf_owned() {
+        let a = BlasTensor::from_vec_shape(vec![1.1, 2.2, 3.3, 4.4, 5.5, 6.6], vec![2, 3]);
+        let b = BlasTensor::from_vec_shape(vec![1.1, 2.2, 3.3, 4.4, 5.5, 6.6], vec![2, 3]);
+        let cref = BlasTensor::from_vec_shape(vec![1.0; 6], vec![2, 3]);
+        let op = BlasOpCode::DivF;
 
         let exec = BlasExecutor::new();
         let c = exec.binary_compute_owned(op, a, b);
