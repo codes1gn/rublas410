@@ -1,8 +1,11 @@
-use crate::blas_tensor::{BlasTensor, TensorKind};
-use crate::prelude::Array2;
 use ndarray::linalg::general_mat_mul;
 use ndarray::linalg::general_mat_vec_mul;
 
+use crate::blas_tensor::{BlasTensor, TensorKind};
+use crate::blas_opcode::BlasOpCode;
+use crate::prelude::Array2;
+
+#[derive(Debug)]
 pub struct BlasExecutor {}
 
 impl BlasExecutor {
@@ -10,9 +13,88 @@ impl BlasExecutor {
         Self {}
     }
 
+    pub fn binary_compute_owned(&self, op: BlasOpCode, lhs: BlasTensor, rhs: BlasTensor) -> BlasTensor {
+        match op {
+            BlasOpCode::AddF => {
+                self.addf32_owned(lhs, rhs)
+            },
+            BlasOpCode::GemmF => {
+                self.gemm_owned(lhs, rhs)
+            },
+            _ => panic!("not wired opcode"),
+        }
+    }
+
+    pub fn binary_compute_side_effect(&self, op: BlasOpCode, lhs: &BlasTensor, rhs: &BlasTensor, out: &mut BlasTensor) {
+        match op {
+            BlasOpCode::AddF => {
+                self.addf32_side_effect(lhs, rhs, out)
+            },
+            BlasOpCode::GemmF => {
+                self.gemm_side_effect(lhs, rhs, out)
+            },
+            _ => panic!("not wired opcode"),
+        }
+
+    }
+
+    pub fn addf32_owned(&self, lhs: BlasTensor, rhs: BlasTensor) -> BlasTensor {
+        match lhs.data {
+            TensorKind::FloatVector(ref _lhs) => match rhs.data {
+                TensorKind::FloatVector(ref _rhs) => {
+                    let out_data = _lhs + _rhs;
+                    let mut out = BlasTensor {
+                        data: TensorKind::from(out_data),
+                        shape: vec![lhs.shape[0]],
+                    };
+                    return out;
+                }
+                _ => panic!("rhs operand's type not compatible with return type"),
+            },
+            TensorKind::FloatMatrix(ref _lhs) => match rhs.data {
+                TensorKind::FloatMatrix(ref _rhs) => {
+                    let out_data = _lhs + _rhs;
+                    let mut out = BlasTensor {
+                        data: TensorKind::from(out_data),
+                        shape: vec![lhs.shape[0], rhs.shape[1]],
+                    };
+                    return out;
+                }
+                _ => panic!("rhs operand's type not compatible with return type"),
+            },
+            _ => panic!("lhs operand's type not supported"),
+        }
+    }
+
+    pub fn addf32_side_effect(&self, lhs: &BlasTensor, rhs: &BlasTensor, out: &mut BlasTensor) {
+        match lhs.data {
+            TensorKind::FloatVector(ref _lhs) => match rhs.data {
+                TensorKind::FloatVector(ref _rhs) => {
+                    let out_data = _lhs + _rhs;
+                    *out = BlasTensor {
+                        data: TensorKind::from(out_data),
+                        shape: vec![lhs.shape[0]],
+                    };
+                }
+                _ => panic!("rhs operand's type not compatible with return type"),
+            },
+            TensorKind::FloatMatrix(ref _lhs) => match rhs.data {
+                TensorKind::FloatMatrix(ref _rhs) => {
+                    let out_data = _lhs + _rhs;
+                    *out = BlasTensor {
+                        data: TensorKind::from(out_data),
+                        shape: vec![lhs.shape[0], rhs.shape[1]],
+                    };
+                }
+                _ => panic!("rhs operand's type not compatible with return type"),
+            },
+            _ => panic!("lhs operand's type not supported"),
+        }
+    }
+
     // TODO add type check
     // gemm with normal-layout mat * normal-layout mat; also consumes operands ownerships
-    pub fn gemm_nn_owned(&self, lhs: BlasTensor, rhs: BlasTensor) -> BlasTensor {
+    pub fn gemm_owned(&self, lhs: BlasTensor, rhs: BlasTensor) -> BlasTensor {
         match lhs.data {
             TensorKind::FloatMatrix(ref _lhs) => match rhs.data {
                 TensorKind::FloatMatrix(ref _rhs) => {
@@ -31,7 +113,7 @@ impl BlasExecutor {
     }
 
     // gemm with normal-layout mat * normal-layout mat; also consumes operands ownerships
-    pub fn gemm_nn(&self, lhs: &BlasTensor, rhs: &BlasTensor, out: &mut BlasTensor) -> () {
+    pub fn gemm_side_effect(&self, lhs: &BlasTensor, rhs: &BlasTensor, out: &mut BlasTensor) -> () {
         match out.data {
             TensorKind::FloatMatrix(ref mut _out) => match lhs.data {
                 TensorKind::FloatMatrix(ref _lhs) => match rhs.data {
@@ -53,28 +135,84 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_gemm_nn_owned_2d() {
+    fn test_gemm_owned() {
         let a = BlasTensor::ones(vec![17, 23]);
         let b = BlasTensor::ones(vec![23, 18]);
-        let exec = BlasExecutor::new();
-        let c = exec.gemm_nn_owned(a, b);
         let cref = BlasTensor::from_vec_shape([23.0; 17 * 18].to_vec(), vec![17, 18]);
+
+        let exec = BlasExecutor::new();
+        let c = exec.gemm_owned(a, b);
         assert_eq!(c.ndims(), 2);
         assert_eq!(c.shape(), [17, 18]);
         assert_eq!(c, cref);
     }
 
     #[test]
-    fn test_gemm_nn_2d() {
+    fn test_gemm_side_effect() {
         let a = BlasTensor::from_vec_shape(vec![1.1, 2.2, 3.3, 4.4, 5.5, 6.6], vec![2, 3]);
         let b = BlasTensor::ones(vec![3, 2]);
         let mut c = BlasTensor::zeros(vec![2, 2]);
         let cref = BlasTensor::from_vec_shape(vec![6.6000004, 6.6000004, 16.5, 16.5], vec![2, 2]);
 
         let exec = BlasExecutor::new();
-        exec.gemm_nn(&a, &b, &mut c);
+        exec.gemm_side_effect(&a, &b, &mut c);
         assert_eq!(c.ndims(), 2);
         assert_eq!(c.shape(), [2, 2]);
+        assert_eq!(c, cref);
+    }
+
+    #[test]
+    fn test_addf32_owned() {
+        let a = BlasTensor::from_vec_shape(vec![1.1, 2.2, 3.3, 4.4, 5.5, 6.6], vec![2, 3]);
+        let b = BlasTensor::from_vec_shape(vec![1.1, 2.2, 3.3, 4.4, 5.5, 6.6], vec![2, 3]);
+        let cref = BlasTensor::from_vec_shape(vec![2.2, 4.4, 6.6, 8.8, 11., 13.2], vec![2, 3]);
+
+        let exec = BlasExecutor::new();
+        let c = exec.addf32_owned(a, b);
+        assert_eq!(c.ndims(), 2);
+        assert_eq!(c.shape(), [2, 3]);
+        assert_eq!(c, cref);
+    }
+
+    #[test]
+    fn test_addf32_side_effect() {
+        let a = BlasTensor::from_vec_shape(vec![1.1, 2.2, 3.3, 4.4, 5.5, 6.6], vec![2, 3]);
+        let b = BlasTensor::from_vec_shape(vec![1.1, 2.2, 3.3, 4.4, 5.5, 6.6], vec![2, 3]);
+        let mut c = BlasTensor::zeros(vec![2, 3]);
+        let cref = BlasTensor::from_vec_shape(vec![2.2, 4.4, 6.6, 8.8, 11., 13.2], vec![2, 3]);
+
+        let exec = BlasExecutor::new();
+        exec.addf32_side_effect(&a, &b, &mut c);
+        assert_eq!(c.ndims(), 2);
+        assert_eq!(c.shape(), [2, 3]);
+        assert_eq!(c, cref);
+    }
+
+    #[test]
+    fn test_binary_compute_addf_owned() {
+        let a = BlasTensor::from_vec_shape(vec![1.1, 2.2, 3.3, 4.4, 5.5, 6.6], vec![2, 3]);
+        let b = BlasTensor::from_vec_shape(vec![1.1, 2.2, 3.3, 4.4, 5.5, 6.6], vec![2, 3]);
+        let cref = BlasTensor::from_vec_shape(vec![2.2, 4.4, 6.6, 8.8, 11., 13.2], vec![2, 3]);
+        let op = BlasOpCode::AddF;
+
+        let exec = BlasExecutor::new();
+        let c = exec.binary_compute_owned(op, a, b);
+        assert_eq!(c.ndims(), 2);
+        assert_eq!(c.shape(), [2, 3]);
+        assert_eq!(c, cref);
+    }
+
+    #[test]
+    fn test_binary_compute_gemm_owned() {
+        let a = BlasTensor::ones(vec![17, 23]);
+        let b = BlasTensor::ones(vec![23, 18]);
+        let cref = BlasTensor::from_vec_shape([23.0; 17 * 18].to_vec(), vec![17, 18]);
+        let op = BlasOpCode::GemmF;
+
+        let exec = BlasExecutor::new();
+        let c = exec.binary_compute_owned(op, a, b);
+        assert_eq!(c.ndims(), 2);
+        assert_eq!(c.shape(), [17, 18]);
         assert_eq!(c, cref);
     }
 }

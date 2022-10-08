@@ -12,6 +12,7 @@ use ndarray::*;
 pub use ndarray_rand::RandomExt;
 use ndarray_rand::F32;
 
+// TODO consider hide TensorKind, and expose a into_raw_vec for BlasTensor
 #[derive(Debug, PartialEq)]
 pub enum TensorKind {
     FloatVector(Array1<f32>),
