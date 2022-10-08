@@ -443,9 +443,8 @@ mod tests {
         // assert_eq!(blast.data.into().shape(), reft.into().shape());
     }
 
-    #[ignore]
     #[test]
-    fn test_uniform_1d_double() {
+    fn test_uniform_double_1d() {
         let blast = BlasTensor::uniform(vec![64], -1f32, 1.0);
         let reft = TensorKind::DoubleVector(Array::random(64, Uniform::new(-1f64, 1.)));
         // assert_eq!(blast.data, reft);
