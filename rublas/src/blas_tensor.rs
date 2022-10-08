@@ -19,6 +19,10 @@ pub enum TensorKind {
     FloatMatrix(Array2<f32>),
     DoubleVector(Array1<f64>),
     DoubleMatrix(Array2<f64>),
+    Int32Vector(Array1<i32>),
+    Int32Matrix(Array2<i32>),
+    Int8Vector(Array1<i8>),
+    Int8Matrix(Array2<i8>),
 }
 
 impl From<Array1<f32>> for TensorKind {
@@ -42,6 +46,18 @@ impl From<Array1<f64>> for TensorKind {
 impl From<Array2<f64>> for TensorKind {
     fn from(who: Array2<f64>) -> Self {
         TensorKind::DoubleMatrix(who)
+    }
+}
+
+impl From<Array1<i32>> for TensorKind {
+    fn from(who: Array1<i32>) -> Self {
+        TensorKind::Int32Vector(who)
+    }
+}
+
+impl From<Array2<i32>> for TensorKind {
+    fn from(who: Array2<i32>) -> Self {
+        TensorKind::Int32Matrix(who)
     }
 }
 
@@ -73,8 +89,7 @@ impl BlasTensor {
         self.shape.clone()
     }
 
-    // TODO support 2D
-    pub fn from(raw_data: Vec<f32>) -> BlasTensor {
+    pub fn from_vec(raw_data: Vec<f32>) -> BlasTensor {
         let raw_shape = vec![raw_data.len()];
         BlasTensor {
             data: TensorKind::from(Array::from(raw_data)),
@@ -110,6 +125,47 @@ impl BlasTensor {
             return Self {
                 data: TensorKind::from(
                     Array2::<f32>::from_shape_vec(
+                        [shape[0] * shape[1] * shape[2], shape[3]],
+                        raw_data,
+                    )
+                    .unwrap(),
+                ),
+                shape: shape,
+            };
+        } else {
+            panic!("not support float tensor with 5 dims or more");
+        }
+    }
+
+    // TODO generic function
+    pub fn from_vec_shape_i32(raw_data: Vec<i32>, shape: Vec<usize>) -> BlasTensor {
+        let dims = shape.len();
+        if dims == 1 {
+            return BlasTensor {
+                data: TensorKind::from(
+                    Array1::<i32>::from_shape_vec([shape[0]], raw_data).unwrap(),
+                ),
+                shape: shape,
+            };
+        } else if dims == 2 {
+            return Self {
+                data: TensorKind::from(
+                    Array2::<i32>::from_shape_vec([shape[0], shape[1]], raw_data).unwrap(),
+                ),
+                shape: shape,
+            };
+        } else if dims == 3 {
+            return Self {
+                data: TensorKind::from(
+                    Array2::<i32>::from_shape_vec([shape[0] * shape[1], shape[2]], raw_data)
+                        .unwrap(),
+                ),
+                shape: shape,
+            };
+        } else if dims == 4 {
+            return Self {
+                data: TensorKind::from(
+                    Array2::<i32>::from_shape_vec(
                         [shape[0] * shape[1] * shape[2], shape[3]],
                         raw_data,
                     )
@@ -496,7 +552,7 @@ mod tests {
 
     #[test]
     fn test_build_from_1d() {
-        let blast = BlasTensor::from(vec![1.7, 2.3, 3.3, 4.1]);
+        let blast = BlasTensor::from_vec(vec![1.7, 2.3, 3.3, 4.1]);
         let reft = TensorKind::FloatVector(Array::from(vec![1.7, 2.3, 3.3, 4.1]));
         assert_eq!(blast.shape(), vec![4]);
         assert_eq!(blast.data, reft);
@@ -508,6 +564,16 @@ mod tests {
             BlasTensor::from_vec_shape(vec![1.7, 2.3, 3.3, 4.1, 1.7, 2.3, 3.3, 4.1], vec![2, 4]);
         let reft = TensorKind::FloatMatrix(
             Array::from_shape_vec([2, 4], vec![1.7, 2.3, 3.3, 4.1, 1.7, 2.3, 3.3, 4.1]).unwrap(),
+        );
+        assert_eq!(blast.shape(), vec![2, 4]);
+        assert_eq!(blast.data, reft);
+    }
+
+    #[test]
+    fn test_build_from_2d_i32() {
+        let blast = BlasTensor::from_vec_shape_i32(vec![1i32, 2, 3, 4, 7, 2, 3, 4], vec![2, 4]);
+        let reft = TensorKind::Int32Matrix(
+            Array::from_shape_vec([2, 4], vec![1i32, 2, 3, 4, 7, 2, 3, 4]).unwrap(),
         );
         assert_eq!(blast.shape(), vec![2, 4]);
         assert_eq!(blast.data, reft);

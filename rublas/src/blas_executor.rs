@@ -24,6 +24,12 @@ impl BlasExecutor {
             BlasOpCode::SubF => self.subf32_owned(lhs, rhs),
             BlasOpCode::MulF => self.mulf32_owned(lhs, rhs),
             BlasOpCode::DivF => self.divf32_owned(lhs, rhs),
+            // TODO make type into generic
+            // TODO support double
+            BlasOpCode::AddI => self.addi32_owned(lhs, rhs),
+            BlasOpCode::SubI => self.subi32_owned(lhs, rhs),
+            BlasOpCode::MulI => self.muli32_owned(lhs, rhs),
+            BlasOpCode::DivI => self.divi32_owned(lhs, rhs),
             BlasOpCode::GemmF => self.gemm_owned(lhs, rhs),
             _ => panic!("not wired opcode"),
         }
@@ -41,8 +47,121 @@ impl BlasExecutor {
             BlasOpCode::SubF => self.subf32_side_effect(lhs, rhs, out),
             BlasOpCode::MulF => self.mulf32_side_effect(lhs, rhs, out),
             BlasOpCode::DivF => self.divf32_side_effect(lhs, rhs, out),
+            // TODO support i32 version
             BlasOpCode::GemmF => self.gemm_side_effect(lhs, rhs, out),
             _ => panic!("not wired opcode"),
+        }
+    }
+
+    pub fn addi32_owned(&self, lhs: BlasTensor, rhs: BlasTensor) -> BlasTensor {
+        match lhs.data {
+            TensorKind::Int32Vector(ref _lhs) => match rhs.data {
+                TensorKind::Int32Vector(ref _rhs) => {
+                    let out_data = _lhs + _rhs;
+                    let mut out = BlasTensor {
+                        data: TensorKind::from(out_data),
+                        shape: vec![lhs.shape[0]],
+                    };
+                    return out;
+                }
+                _ => panic!("rhs operand's type not compatible with return type"),
+            },
+            TensorKind::Int32Matrix(ref _lhs) => match rhs.data {
+                TensorKind::Int32Matrix(ref _rhs) => {
+                    let out_data = _lhs + _rhs;
+                    let mut out = BlasTensor {
+                        data: TensorKind::from(out_data),
+                        shape: vec![lhs.shape[0], rhs.shape[1]],
+                    };
+                    return out;
+                }
+                _ => panic!("rhs operand's type not compatible with return type"),
+            },
+            _ => panic!("lhs operand's type not supported"),
+        }
+    }
+
+    pub fn subi32_owned(&self, lhs: BlasTensor, rhs: BlasTensor) -> BlasTensor {
+        match lhs.data {
+            TensorKind::Int32Vector(ref _lhs) => match rhs.data {
+                TensorKind::Int32Vector(ref _rhs) => {
+                    let out_data = _lhs - _rhs;
+                    let mut out = BlasTensor {
+                        data: TensorKind::from(out_data),
+                        shape: vec![lhs.shape[0]],
+                    };
+                    return out;
+                }
+                _ => panic!("rhs operand's type not compatible with return type"),
+            },
+            TensorKind::Int32Matrix(ref _lhs) => match rhs.data {
+                TensorKind::Int32Matrix(ref _rhs) => {
+                    let out_data = _lhs - _rhs;
+                    let mut out = BlasTensor {
+                        data: TensorKind::from(out_data),
+                        shape: vec![lhs.shape[0], rhs.shape[1]],
+                    };
+                    return out;
+                }
+                _ => panic!("rhs operand's type not compatible with return type"),
+            },
+            _ => panic!("lhs operand's type not supported"),
+        }
+    }
+
+    pub fn muli32_owned(&self, lhs: BlasTensor, rhs: BlasTensor) -> BlasTensor {
+        match lhs.data {
+            TensorKind::Int32Vector(ref _lhs) => match rhs.data {
+                TensorKind::Int32Vector(ref _rhs) => {
+                    let out_data = _lhs * _rhs;
+                    let mut out = BlasTensor {
+                        data: TensorKind::from(out_data),
+                        shape: vec![lhs.shape[0]],
+                    };
+                    return out;
+                }
+                _ => panic!("rhs operand's type not compatible with return type"),
+            },
+            TensorKind::Int32Matrix(ref _lhs) => match rhs.data {
+                TensorKind::Int32Matrix(ref _rhs) => {
+                    let out_data = _lhs * _rhs;
+                    let mut out = BlasTensor {
+                        data: TensorKind::from(out_data),
+                        shape: vec![lhs.shape[0], rhs.shape[1]],
+                    };
+                    return out;
+                }
+                _ => panic!("rhs operand's type not compatible with return type"),
+            },
+            _ => panic!("lhs operand's type not supported"),
+        }
+    }
+
+    pub fn divi32_owned(&self, lhs: BlasTensor, rhs: BlasTensor) -> BlasTensor {
+        match lhs.data {
+            TensorKind::Int32Vector(ref _lhs) => match rhs.data {
+                TensorKind::Int32Vector(ref _rhs) => {
+                    let out_data = _lhs / _rhs;
+                    let mut out = BlasTensor {
+                        data: TensorKind::from(out_data),
+                        shape: vec![lhs.shape[0]],
+                    };
+                    return out;
+                }
+                _ => panic!("rhs operand's type not compatible with return type"),
+            },
+            TensorKind::Int32Matrix(ref _lhs) => match rhs.data {
+                TensorKind::Int32Matrix(ref _rhs) => {
+                    let out_data = _lhs / _rhs;
+                    let mut out = BlasTensor {
+                        data: TensorKind::from(out_data),
+                        shape: vec![lhs.shape[0], rhs.shape[1]],
+                    };
+                    return out;
+                }
+                _ => panic!("rhs operand's type not compatible with return type"),
+            },
+            _ => panic!("lhs operand's type not supported"),
         }
     }
 
@@ -328,6 +447,58 @@ mod tests {
         exec.gemm_side_effect(&a, &b, &mut c);
         assert_eq!(c.ndims(), 2);
         assert_eq!(c.shape(), [2, 2]);
+        assert_eq!(c, cref);
+    }
+
+    #[test]
+    fn test_addi32_owned() {
+        let a = BlasTensor::from_vec_shape_i32(vec![1i32, 2, 3, 4, 5, 6], vec![2, 3]);
+        let b = BlasTensor::from_vec_shape_i32(vec![1i32, 2, 3, 4, 5, 6], vec![2, 3]);
+        let cref = BlasTensor::from_vec_shape_i32(vec![2i32, 4, 6, 8, 10, 12], vec![2, 3]);
+
+        let exec = BlasExecutor::new();
+        let c = exec.addi32_owned(a, b);
+        assert_eq!(c.ndims(), 2);
+        assert_eq!(c.shape(), [2, 3]);
+        assert_eq!(c, cref);
+    }
+
+    #[test]
+    fn test_subi32_owned() {
+        let a = BlasTensor::from_vec_shape_i32(vec![1i32, 2, 3, 4, 5, 6], vec![2, 3]);
+        let b = BlasTensor::from_vec_shape_i32(vec![1i32, 2, 3, 4, 5, 6], vec![2, 3]);
+        let cref = BlasTensor::from_vec_shape_i32(vec![0i32; 6], vec![2, 3]);
+
+        let exec = BlasExecutor::new();
+        let c = exec.subi32_owned(a, b);
+        assert_eq!(c.ndims(), 2);
+        assert_eq!(c.shape(), [2, 3]);
+        assert_eq!(c, cref);
+    }
+
+    #[test]
+    fn test_muli32_owned() {
+        let a = BlasTensor::from_vec_shape_i32(vec![1i32, 2, 3, 4, 5, 6], vec![2, 3]);
+        let b = BlasTensor::from_vec_shape_i32(vec![1i32, 2, 3, 4, 5, 6], vec![2, 3]);
+        let cref = BlasTensor::from_vec_shape_i32(vec![1i32, 4, 9, 16, 25, 36], vec![2, 3]);
+
+        let exec = BlasExecutor::new();
+        let c = exec.muli32_owned(a, b);
+        assert_eq!(c.ndims(), 2);
+        assert_eq!(c.shape(), [2, 3]);
+        assert_eq!(c, cref);
+    }
+
+    #[test]
+    fn test_divi32_owned() {
+        let a = BlasTensor::from_vec_shape_i32(vec![1i32, 2, 3, 4, 5, 6], vec![2, 3]);
+        let b = BlasTensor::from_vec_shape_i32(vec![1i32, 2, 3, 4, 5, 6], vec![2, 3]);
+        let cref = BlasTensor::from_vec_shape_i32(vec![1i32; 6], vec![2, 3]);
+
+        let exec = BlasExecutor::new();
+        let c = exec.divi32_owned(a, b);
+        assert_eq!(c.ndims(), 2);
+        assert_eq!(c.shape(), [2, 3]);
         assert_eq!(c, cref);
     }
 
