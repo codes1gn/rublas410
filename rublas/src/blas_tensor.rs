@@ -213,8 +213,6 @@ impl BlasTensor {
         }
     }
 
-    // TODO impl normal
-    // TODO impl uniform_double
     // TODO refactor to pattern-match style
     pub fn uniform(shape: Vec<usize>, min: f32, max: f32) -> BlasTensor {
         let dims = shape.len();
@@ -247,6 +245,123 @@ impl BlasTensor {
                 data: TensorKind::from(Array2::<f32>::random(
                     [shape[0] * shape[1] * shape[2], shape[3]],
                     Uniform::<f32>::new(min, max),
+                )),
+                shape: shape,
+            };
+        } else {
+            panic!("not support tensor with 5 dims or more");
+        }
+    }
+
+    pub fn uniform_double(shape: Vec<usize>, min: f64, max: f64) -> BlasTensor {
+        let dims = shape.len();
+        if dims == 1 {
+            return Self {
+                data: TensorKind::from(Array1::<f64>::random(
+                    shape[0],
+                    Uniform::<f64>::new(min, max),
+                )),
+                shape: shape,
+            };
+        } else if dims == 2 {
+            return Self {
+                data: TensorKind::from(Array2::<f64>::random(
+                    [shape[0], shape[1]],
+                    Uniform::<f64>::new(min, max),
+                )),
+                shape: shape,
+            };
+        } else if dims == 3 {
+            return Self {
+                data: TensorKind::from(Array2::<f64>::random(
+                    [shape[0] * shape[1], shape[2]],
+                    Uniform::<f64>::new(min, max),
+                )),
+                shape: shape,
+            };
+        } else if dims == 4 {
+            return Self {
+                data: TensorKind::from(Array2::<f64>::random(
+                    [shape[0] * shape[1] * shape[2], shape[3]],
+                    Uniform::<f64>::new(min, max),
+                )),
+                shape: shape,
+            };
+        } else {
+            panic!("not support tensor with 5 dims or more");
+        }
+    }
+
+    pub fn normal(shape: Vec<usize>, mean: f32, std: f32) -> BlasTensor {
+        let dims = shape.len();
+        if dims == 1 {
+            return Self {
+                data: TensorKind::from(Array1::<f32>::random(
+                    shape[0],
+                    Normal::<f32>::new(mean, std).unwrap(),
+                )),
+                shape: shape,
+            };
+        } else if dims == 2 {
+            return Self {
+                data: TensorKind::from(Array2::<f32>::random(
+                    [shape[0], shape[1]],
+                    Normal::<f32>::new(mean, std).unwrap(),
+                )),
+                shape: shape,
+            };
+        } else if dims == 3 {
+            return Self {
+                data: TensorKind::from(Array2::<f32>::random(
+                    [shape[0] * shape[1], shape[2]],
+                    Normal::<f32>::new(mean, std).unwrap(),
+                )),
+                shape: shape,
+            };
+        } else if dims == 4 {
+            return Self {
+                data: TensorKind::from(Array2::<f32>::random(
+                    [shape[0] * shape[1] * shape[2], shape[3]],
+                    Normal::<f32>::new(mean, std).unwrap(),
+                )),
+                shape: shape,
+            };
+        } else {
+            panic!("not support tensor with 5 dims or more");
+        }
+    }
+
+    pub fn normal_double(shape: Vec<usize>, mean: f64, std: f64) -> BlasTensor {
+        let dims = shape.len();
+        if dims == 1 {
+            return Self {
+                data: TensorKind::from(Array1::<f64>::random(
+                    shape[0],
+                    Normal::<f64>::new(mean, std).unwrap(),
+                )),
+                shape: shape,
+            };
+        } else if dims == 2 {
+            return Self {
+                data: TensorKind::from(Array2::<f64>::random(
+                    [shape[0], shape[1]],
+                    Normal::<f64>::new(mean, std).unwrap(),
+                )),
+                shape: shape,
+            };
+        } else if dims == 3 {
+            return Self {
+                data: TensorKind::from(Array2::<f64>::random(
+                    [shape[0] * shape[1], shape[2]],
+                    Normal::<f64>::new(mean, std).unwrap(),
+                )),
+                shape: shape,
+            };
+        } else if dims == 4 {
+            return Self {
+                data: TensorKind::from(Array2::<f64>::random(
+                    [shape[0] * shape[1] * shape[2], shape[3]],
+                    Normal::<f64>::new(mean, std).unwrap(),
                 )),
                 shape: shape,
             };
@@ -340,6 +455,29 @@ mod tests {
     fn test_uniform_2d() {
         let blast = BlasTensor::uniform(vec![64, 32], -1f32, 1.0);
         let reft = TensorKind::FloatMatrix(Array::random([64, 32], Uniform::new(-1f32, 1.)));
+        // assert_eq!(blast.data, reft);
+    }
+
+    #[test]
+    fn test_normal_2d() {
+        let blast = BlasTensor::normal(vec![64, 32], 0.0f32, 1.0);
+        let reft =
+            TensorKind::FloatMatrix(Array::random([64, 32], Normal::new(0.0f32, 1.).unwrap()));
+        // assert_eq!(blast.data, reft);
+    }
+
+    #[test]
+    fn test_normal_double_2d() {
+        let blast = BlasTensor::uniform_double(vec![64, 32], -1f64, 1.0);
+        let reft =
+            TensorKind::DoubleMatrix(Array::random([64, 32], Normal::new(-1f64, 1.).unwrap()));
+        // assert_eq!(blast.data, reft);
+    }
+
+    #[test]
+    fn test_uniform_double_2d() {
+        let blast = BlasTensor::uniform_double(vec![64, 32], -1f64, 1.0);
+        let reft = TensorKind::DoubleMatrix(Array::random([64, 32], Uniform::new(-1f64, 1.)));
         // assert_eq!(blast.data, reft);
     }
 
