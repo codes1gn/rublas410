@@ -62,3 +62,7 @@ harness = false
 name = "build_tensor"
 harness = false
 
+[[bench]]
+name = "add"
+harness = false
+
