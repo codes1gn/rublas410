@@ -55,7 +55,7 @@ fn add_f32(crit: &mut Criterion) {
                 |bench, msize| {
                     let lhs = BlasTensor::ones(vec![*Msize, *Ksize]);
                     let rhs = BlasTensor::ones(vec![*Msize, *Ksize]);
-                    let mut out = BlasTensor::zeros(vec![*Msize, *Msize]);
+                    let mut out = BlasTensor::zeros(vec![*Msize, *Ksize]);
                     let exec = BlasExecutor::new();
                     bench.iter(|| {
                         black_box(exec.addf32_side_effect(&lhs, &rhs, &mut out));
