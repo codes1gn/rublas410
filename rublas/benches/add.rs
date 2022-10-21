@@ -16,7 +16,7 @@ use rublas::prelude::*;
 
 
 fn add_f32(crit: &mut Criterion) {
-    let mut bench_group = crit.benchmark_group("addf32");
+    let mut bench_group = crit.benchmark_group("add_f32");
     bench_group.sample_size(10);
     
     for Msize in vec![16, 256, 1024, 4096].iter() {

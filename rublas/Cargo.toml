@@ -73,3 +73,7 @@ harness = false
 [[bench]]
 name = "mul"
 harness = false
+
+[[bench]]
+name = "div"
+harness = false
