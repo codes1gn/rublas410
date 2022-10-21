@@ -66,3 +66,14 @@ harness = false
 name = "add"
 harness = false
 
+[[bench]]
+name = "sub"
+harness = false
+
+[[bench]]
+name = "mul"
+harness = false
+
+[[bench]]
+name = "div"
+harness = false
