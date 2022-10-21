@@ -66,3 +66,6 @@ harness = false
 name = "add"
 harness = false
 
+[[bench]]
+name = "sub"
+harness = false
