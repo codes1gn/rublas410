@@ -1,16 +1,3 @@
-#[cfg(feature = "openblas")]
-extern crate ndarray_blas as ndarray;
-
-#[cfg(feature = "netlib")]
-extern crate ndarray_blas as ndarray;
-
-#[cfg(all(
-    feature = "default",
-    not(feature = "openblas"),
-    not(feature = "netlib")
-))]
-extern crate ndarray_vanilla as ndarray;
-
 use ndarray::linalg::general_mat_mul;
 use ndarray::linalg::general_mat_vec_mul;
 use ndarray::prelude::*;

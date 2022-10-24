@@ -1,15 +1,6 @@
-#[cfg(all(
-    feature = "default",
-    not(feature = "openblas"),
-    not(feature = "netlib")
-))]
-extern crate ndarray_vanilla as ndarray;
-
-#[cfg(feature = "openblas")]
-extern crate ndarray_blas as ndarray;
-
-#[cfg(feature = "netlib")]
-extern crate ndarray_blas as ndarray;
+extern crate ndarray;
+extern crate ndarray_linalg;
+extern crate ndarray_rand;
 
 pub mod blas_executor;
 pub mod blas_opcode;
@@ -18,7 +9,8 @@ pub mod blas_tensor;
 /// Prelude module for users to import
 pub mod prelude {
     // helpers
-    pub use ndarray::prelude::{arr1, arr2, Array, Array1, Array2};
+    pub use ndarray::prelude::*;
+    pub use ndarray_linalg::*;
 
     // prelude
     pub use crate::blas_executor::*;
@@ -30,7 +22,8 @@ pub mod prelude {
 
 #[cfg(test)]
 mod tests {
-    use ndarray::prelude::{arr2, Array1, Array2};
+    use ndarray::*;
+    use ndarray_linalg::*;
 
     #[test]
     fn it_works() {
@@ -50,5 +43,12 @@ mod tests {
         assert_eq!(y.shape(), &[m]);
         assert_eq!(x.shape(), &[n]);
         assert_eq!(a.shape(), &[m, n]);
+    }
+
+    #[test]
+    fn mat_inv_test() {
+        // let a = Array2::<f32>::zeros((64, 32));
+        let a: Array2<f32> = random((3, 3));
+        a.inv();
     }
 }
